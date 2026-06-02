@@ -5,6 +5,7 @@ import ForgotPassword from '@/pages/auth/ForgotPassword'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import Reset from '@/pages/auth/Reset'
+import Onboarding from '@/pages/professional/Onboarding'
 
 // Gates a route behind authentication. Pass allowedRoles to also restrict by role
 // (omitted = any signed-in user). Waits for the initial session check so a refresh
@@ -72,6 +73,14 @@ function App() {
             <PublicOnlyRoute>
               <ForgotPassword />
             </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/professional/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={['professional']}>
+              <Onboarding />
+            </ProtectedRoute>
           }
         />
         {/* Reset is reached from the email link with a recovery session active, so

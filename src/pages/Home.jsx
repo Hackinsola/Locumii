@@ -23,6 +23,11 @@ function Home() {
           {email} · <span className="capitalize">{role}</span>
         </p>
       </div>
+      {role === 'professional' && (
+        <Button onClick={() => navigate('/professional/onboarding')}>
+          Complete your profile
+        </Button>
+      )}
       <Button variant="outline" onClick={handleLogout} disabled={loading}>
         {loading ? 'Signing out…' : 'Sign out'}
       </Button>

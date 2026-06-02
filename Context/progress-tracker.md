@@ -34,6 +34,7 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- **Professional onboarding — Step 1 of 2 done (profile form).** `src/hooks/useProfile.js` (`useSaveProfessionalProfile` — upserts the `professional_profiles` row; never writes `is_verified`/`avg_rating`, which the DB trigger protects) + `src/pages/professional/Onboarding.jsx` (full name, specialty, council reg number, years of experience, FCT preferred locations, optional bio; client validation; shadcn primitives + a styled native `<select>` for specialty). Wired at `/professional/onboarding` (ProtectedRoute, `allowedRoles=['professional']`) with a "Complete your profile" link added to the temporary Home. Option lists in `src/constants/options.js` (specialties + the six FCT area councils). **Decisions:** city = fixed FCT list; bank details deferred to the payments unit. **Verified:** `vite build` (186 modules) + lint clean; the exact upsert payload accepted by the live table (enum specialty, `text[]` cities, `is_verified` defaults false), then cleaned up. **Remaining:** Step 2 — document upload (MDCN license / NYSC cert / gov ID) to the private `credentials` bucket + `credentials` rows (status `pending`).
 - **Editor chrome (`Feature-specs/02-editor.md`)** — Navbar + layout shell built earlier; **no longer mounted at `/`** (step 5 of the auth flow replaced `App.jsx` with the router). The components remain in `src/components/editor/` for reuse once their place in the app is specified. The sidebar's *contents* are still unspecified.
 
 -----

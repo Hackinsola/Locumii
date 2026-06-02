@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Environment variables — real keys live here; copy .env.example to .env.
+# .env.example is intentionally tracked.
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

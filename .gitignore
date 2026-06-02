@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Agent skills — third-party repos cloned by `npx skills add` (manifest in skills-lock.json)
+.agents/
+
+# Local Claude Code settings and skill symlinks (machine-specific)
+.claude/settings.local.json
+.claude/skills/

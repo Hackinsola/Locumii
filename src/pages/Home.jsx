@@ -24,9 +24,14 @@ function Home() {
         </p>
       </div>
       {role === 'professional' && (
-        <Button onClick={() => navigate('/professional/onboarding')}>
-          Complete your profile
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button onClick={() => navigate('/professional/onboarding')}>
+            Complete your profile
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/professional/documents')}>
+            Upload documents
+          </Button>
+        </div>
       )}
       <Button variant="outline" onClick={handleLogout} disabled={loading}>
         {loading ? 'Signing out…' : 'Sign out'}

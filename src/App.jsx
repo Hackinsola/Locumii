@@ -5,6 +5,7 @@ import ForgotPassword from '@/pages/auth/ForgotPassword'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import Reset from '@/pages/auth/Reset'
+import DocumentUpload from '@/pages/professional/DocumentUpload'
 import Onboarding from '@/pages/professional/Onboarding'
 
 // Gates a route behind authentication. Pass allowedRoles to also restrict by role
@@ -80,6 +81,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['professional']}>
               <Onboarding />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professional/documents"
+          element={
+            <ProtectedRoute allowedRoles={['professional']}>
+              <DocumentUpload />
             </ProtectedRoute>
           }
         />

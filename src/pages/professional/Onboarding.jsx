@@ -80,7 +80,8 @@ function Onboarding() {
       setSubmitError(error.message ?? 'Could not save your profile. Please try again.');
       return;
     }
-    navigate('/');
+    // Continue to the document-upload step of onboarding.
+    navigate('/professional/documents');
   }
 
   return (

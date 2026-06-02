@@ -19,3 +19,14 @@ export const FCT_CITIES = [
   'Kwali',
   'Abaji',
 ];
+
+// credentials.doc_type enum -> display label. All three are required for review.
+export const CREDENTIAL_DOC_TYPES = [
+  { value: 'mdcn_license', label: 'MDCN / Council License' },
+  { value: 'nysc_cert', label: 'NYSC Certificate' },
+  { value: 'government_id', label: 'Government-issued ID' },
+];
+
+// Mirrors the credentials Storage bucket's allowed_mime_types and file_size_limit.
+export const ACCEPTED_DOC_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg'];
+export const MAX_DOC_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB

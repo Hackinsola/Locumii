@@ -161,6 +161,25 @@ export function useAuth() {
     }
   }, []);
 
+  // Set a new password for the recovery session established when the user follows
+  // the reset link (the Supabase client picks up the recovery token from the URL).
+  const updatePassword = useCallback(async (newPassword) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) {
+        throw updateError;
+      }
+      return { error: null };
+    } catch (caught) {
+      setError(caught);
+      return { error: caught };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     userId,
     role,
@@ -171,6 +190,7 @@ export function useAuth() {
     login,
     logout,
     resetPassword,
+    updatePassword,
     loading,
     error,
   };

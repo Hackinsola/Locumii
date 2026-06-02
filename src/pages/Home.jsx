@@ -38,6 +38,9 @@ function Home() {
           Complete your facility profile
         </Button>
       )}
+      {role === 'admin' && (
+        <Button onClick={() => navigate('/admin/credentials')}>Review credentials</Button>
+      )}
       <Button variant="outline" onClick={handleLogout} disabled={loading}>
         {loading ? 'Signing out…' : 'Sign out'}
       </Button>

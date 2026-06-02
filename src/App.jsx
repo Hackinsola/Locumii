@@ -5,6 +5,7 @@ import ForgotPassword from '@/pages/auth/ForgotPassword'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import Reset from '@/pages/auth/Reset'
+import CredentialQueue from '@/pages/admin/CredentialQueue'
 import FacilityOnboarding from '@/pages/facility/Onboarding'
 import DocumentUpload from '@/pages/professional/DocumentUpload'
 import Onboarding from '@/pages/professional/Onboarding'
@@ -98,6 +99,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['facility']}>
               <FacilityOnboarding />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/credentials"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <CredentialQueue />
             </ProtectedRoute>
           }
         />

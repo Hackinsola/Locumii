@@ -33,6 +33,11 @@ function Home() {
           </Button>
         </div>
       )}
+      {role === 'facility' && (
+        <Button onClick={() => navigate('/facility/onboarding')}>
+          Complete your facility profile
+        </Button>
+      )}
       <Button variant="outline" onClick={handleLogout} disabled={loading}>
         {loading ? 'Signing out…' : 'Sign out'}
       </Button>

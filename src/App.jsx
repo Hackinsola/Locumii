@@ -5,6 +5,7 @@ import ForgotPassword from '@/pages/auth/ForgotPassword'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import Reset from '@/pages/auth/Reset'
+import FacilityOnboarding from '@/pages/facility/Onboarding'
 import DocumentUpload from '@/pages/professional/DocumentUpload'
 import Onboarding from '@/pages/professional/Onboarding'
 
@@ -89,6 +90,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['professional']}>
               <DocumentUpload />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/facility/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <FacilityOnboarding />
             </ProtectedRoute>
           }
         />

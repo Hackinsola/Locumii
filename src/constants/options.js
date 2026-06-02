@@ -20,6 +20,14 @@ export const FCT_CITIES = [
   'Abaji',
 ];
 
+// facility_profiles.facility_type enum -> display label.
+export const FACILITY_TYPES = [
+  { value: 'clinic', label: 'Clinic' },
+  { value: 'hospital', label: 'Hospital' },
+  { value: 'pharmacy', label: 'Pharmacy' },
+  { value: 'diagnostic_lab', label: 'Diagnostic Laboratory' },
+];
+
 // credentials.doc_type enum -> display label. All three are required for review.
 export const CREDENTIAL_DOC_TYPES = [
   { value: 'mdcn_license', label: 'MDCN / Council License' },

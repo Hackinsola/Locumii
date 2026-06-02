@@ -76,6 +76,7 @@ export function useAuth() {
   const [error, setError] = useState(null);
 
   const userId = useAuthStore((state) => state.userId);
+  const email = useAuthStore((state) => state.session?.user?.email ?? null);
   const role = useAuthStore((state) => state.role);
   const isVerified = useAuthStore((state) => state.isVerified);
   const isInitialized = useAuthStore((state) => state.isInitialized);
@@ -182,6 +183,7 @@ export function useAuth() {
 
   return {
     userId,
+    email,
     role,
     isVerified,
     isInitialized,

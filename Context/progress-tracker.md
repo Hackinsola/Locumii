@@ -33,6 +33,7 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- **Auth flow — Step 1 of 5 done (registration trigger).** `supabase/migrations/014_handle_new_user.sql`: `SECURITY DEFINER` trigger `on_auth_user_created` (AFTER INSERT on `auth.users`) that creates the `public.users` row (`status='pending'`) and writes `app_metadata.role` into `auth.users.raw_app_meta_data` (the JWT claim every RLS policy reads). Role is read from `raw_user_meta_data.role` (client passes it via `signUp({ options: { data: { role, phone } } })`); only `professional`/`facility` are accepted, `admin` is rejected so privilege cannot be self-assigned. **Verified:** valid pro sign-up creates the row + claim; an `admin` sign-up is rejected with no row leaked. **Remaining steps (awaiting go-ahead):** (2) `src/store/authStore.js`, (3) `src/hooks/useAuth.js`, (4) `src/pages/auth/{Register,Login,ForgotPassword}.jsx`, (5) React Router + role-based route guards. `react-router-dom` and `zustand` are now installed for those steps.
 - **Editor chrome (`Feature-specs/02-editor.md`)** — Navbar + layout shell done (below). The sidebar's *contents* are foreshadowed in the spec intro but not yet specified; the layout currently renders an empty collapsible sidebar shell awaiting that follow-up chapter.
 
 -----

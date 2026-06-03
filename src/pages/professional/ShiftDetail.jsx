@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import BidButton from '@/components/shifts/BidButton';
+import { useAuth } from '@/hooks/useAuth';
+import { useShiftBid, useSubmitBid } from '@/hooks/useBids';
 import { useShift } from '@/hooks/useShifts';
 import { formatShiftRange } from '@/utils/dateTime';
 import { formatNaira } from '@/utils/money';
@@ -22,6 +26,20 @@ function ShiftDetail() {
   const { shiftId } = useParams();
   const navigate = useNavigate();
   const { shift, loading, error } = useShift(shiftId);
+  const { isVerified } = useAuth();
+  const { bid, refetch: refetchBid } = useShiftBid(shiftId);
+  const { submitBid, loading: submitting } = useSubmitBid();
+  const [bidError, setBidError] = useState(null);
+
+  async function handleSubmitBid() {
+    setBidError(null);
+    const { error: submitError } = await submitBid(shiftId);
+    if (submitError) {
+      setBidError('Could not submit your bid. Please try again.');
+      return;
+    }
+    refetchBid();
+  }
 
   const facility = shift
     ? Array.isArray(shift.facility_profiles)
@@ -56,6 +74,16 @@ function ShiftDetail() {
               {shift.requirements && (
                 <DetailRow label="Requirements" value={shift.requirements} />
               )}
+              <div className="flex flex-col gap-2 border-t pt-4">
+                <BidButton
+                  isVerified={isVerified}
+                  shiftOpen={shift.status === 'open'}
+                  existingBidStatus={bid?.status ?? null}
+                  submitting={submitting}
+                  onSubmit={handleSubmitBid}
+                />
+                {bidError && <p className="text-sm text-destructive">{bidError}</p>}
+              </div>
             </CardContent>
           </Card>
         )}

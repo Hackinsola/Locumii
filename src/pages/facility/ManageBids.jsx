@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PROFESSIONAL_SPECIALTIES } from '@/constants/options';
 import { useAcceptBid, useShiftBids } from '@/hooks/useBids';
 import { useShift } from '@/hooks/useShifts';
+import { useConfirmCompletion, useShiftConfirmation } from '@/hooks/useShiftConfirmation';
 import { formatShiftRange } from '@/utils/dateTime';
 import { formatNaira } from '@/utils/money';
 
@@ -24,6 +25,8 @@ function ManageBids() {
   const { shift, refetch: refetchShift } = useShift(shiftId);
   const { bids, loading, error, refetch: refetchBids } = useShiftBids(shiftId);
   const { acceptBid, loading: accepting } = useAcceptBid();
+  const { confirmation, refetch: refetchConfirmation } = useShiftConfirmation(shiftId);
+  const { confirm, loading: confirming } = useConfirmCompletion();
   const [actionError, setActionError] = useState(null);
 
   const shiftOpen = shift?.status === 'open';
@@ -36,6 +39,17 @@ function ManageBids() {
       return;
     }
     refetchBids();
+    refetchShift();
+  }
+
+  async function handleConfirm() {
+    setActionError(null);
+    const { error: confirmError } = await confirm(shiftId);
+    if (confirmError) {
+      setActionError(confirmError.message ?? 'Could not confirm completion. Please try again.');
+      return;
+    }
+    refetchConfirmation();
     refetchShift();
   }
 
@@ -55,6 +69,20 @@ function ManageBids() {
               <span className="capitalize">{shift.status}</span>
             </p>
           </div>
+        )}
+
+        {shift?.status === 'in_progress' &&
+          (confirmation?.facility_confirmed_at ? (
+            <p className="text-sm text-muted-foreground">
+              You confirmed completion — awaiting the professional.
+            </p>
+          ) : (
+            <Button className="self-start" onClick={handleConfirm} disabled={confirming}>
+              {confirming ? 'Confirming…' : 'Confirm completion'}
+            </Button>
+          ))}
+        {shift?.status === 'completed' && (
+          <p className="text-sm font-medium text-foreground">Shift completed.</p>
         )}
 
         {loading && <p className="text-sm text-muted-foreground">Loading bids…</p>}

@@ -6,6 +6,11 @@ import BidButton from '@/components/shifts/BidButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useShiftBid, useSubmitBid } from '@/hooks/useBids';
 import { useShift } from '@/hooks/useShifts';
+import {
+  useCheckInShift,
+  useConfirmCompletion,
+  useShiftConfirmation,
+} from '@/hooks/useShiftConfirmation';
 import { formatShiftRange } from '@/utils/dateTime';
 import { formatNaira } from '@/utils/money';
 
@@ -25,11 +30,15 @@ function DetailRow({ label, value, mono = false }) {
 function ShiftDetail() {
   const { shiftId } = useParams();
   const navigate = useNavigate();
-  const { shift, loading, error } = useShift(shiftId);
+  const { shift, loading, error, refetch: refetchShift } = useShift(shiftId);
   const { isVerified } = useAuth();
   const { bid, refetch: refetchBid } = useShiftBid(shiftId);
   const { submitBid, loading: submitting } = useSubmitBid();
+  const { confirmation, refetch: refetchConfirmation } = useShiftConfirmation(shiftId);
+  const { checkIn, loading: checkingIn } = useCheckInShift();
+  const { confirm, loading: confirming } = useConfirmCompletion();
   const [bidError, setBidError] = useState(null);
+  const [completionError, setCompletionError] = useState(null);
 
   async function handleSubmitBid() {
     setBidError(null);
@@ -39,6 +48,27 @@ function ShiftDetail() {
       return;
     }
     refetchBid();
+  }
+
+  async function handleCheckIn() {
+    setCompletionError(null);
+    const { error: checkInError } = await checkIn(shiftId);
+    if (checkInError) {
+      setCompletionError(checkInError.message ?? 'Could not check in. Please try again.');
+      return;
+    }
+    refetchShift();
+  }
+
+  async function handleConfirm() {
+    setCompletionError(null);
+    const { error: confirmError } = await confirm(shiftId);
+    if (confirmError) {
+      setCompletionError(confirmError.message ?? 'Could not confirm. Please try again.');
+      return;
+    }
+    refetchConfirmation();
+    refetchShift();
   }
 
   const facility = shift
@@ -84,6 +114,32 @@ function ShiftDetail() {
                 />
                 {bidError && <p className="text-sm text-destructive">{bidError}</p>}
               </div>
+
+              {bid?.status === 'accepted' && (
+                <div className="flex flex-col gap-2 border-t pt-4">
+                  {shift.status === 'filled' && (
+                    <Button onClick={handleCheckIn} disabled={checkingIn}>
+                      {checkingIn ? 'Checking in…' : 'Check in'}
+                    </Button>
+                  )}
+                  {shift.status === 'in_progress' &&
+                    (confirmation?.professional_confirmed_at ? (
+                      <p className="text-sm text-muted-foreground">
+                        You confirmed completion — awaiting the facility.
+                      </p>
+                    ) : (
+                      <Button onClick={handleConfirm} disabled={confirming}>
+                        {confirming ? 'Confirming…' : 'Confirm completion'}
+                      </Button>
+                    ))}
+                  {shift.status === 'completed' && (
+                    <p className="text-sm font-medium text-foreground">Shift completed.</p>
+                  )}
+                  {completionError && (
+                    <p className="text-sm text-destructive">{completionError}</p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

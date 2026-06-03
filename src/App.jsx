@@ -6,6 +6,8 @@ import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import Reset from '@/pages/auth/Reset'
 import CredentialQueue from '@/pages/admin/CredentialQueue'
+import ManageBids from '@/pages/facility/ManageBids'
+import MyShifts from '@/pages/facility/MyShifts'
 import FacilityOnboarding from '@/pages/facility/Onboarding'
 import PostShift from '@/pages/facility/PostShift'
 import DocumentUpload from '@/pages/professional/DocumentUpload'
@@ -126,6 +128,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['facility']}>
               <PostShift />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/facility/shifts"
+          element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <MyShifts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/facility/shifts/:shiftId/bids"
+          element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <ManageBids />
             </ProtectedRoute>
           }
         />

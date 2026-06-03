@@ -99,6 +99,41 @@ export function useOpenShifts({ city, role, date }) {
   return { shifts, loading, error, refetch: fetchShifts };
 }
 
+// Lists the current facility's own shifts (any status), newest first.
+export function useFacilityShifts() {
+  const facilityId = useAuthStore((state) => state.userId);
+  const [shifts, setShifts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchShifts = useCallback(async () => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('shifts')
+        .select('id, role_required, start_time, end_time, pay_rate_naira, city, status')
+        .eq('facility_id', facilityId)
+        .order('start_time', { ascending: false })
+        .range(0, PAGE_SIZE - 1);
+      if (fetchError) {
+        throw fetchError;
+      }
+      setShifts(data ?? []);
+      setError(null);
+    } catch (caught) {
+      setError(caught);
+    } finally {
+      setLoading(false);
+    }
+  }, [facilityId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchShifts();
+  }, [fetchShifts]);
+
+  return { shifts, loading, error, refetch: fetchShifts };
+}
+
 // Fetches a single shift by id (open, or one the professional has bid on — both
 // allowed by RLS). Returns null if not found / not visible.
 export function useShift(shiftId) {

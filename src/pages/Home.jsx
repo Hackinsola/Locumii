@@ -44,6 +44,9 @@ function Home() {
           <Button variant="outline" onClick={() => navigate('/facility/post-shift')}>
             Post a shift
           </Button>
+          <Button variant="outline" onClick={() => navigate('/facility/shifts')}>
+            My shifts
+          </Button>
         </div>
       )}
       {role === 'admin' && (

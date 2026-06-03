@@ -10,6 +10,8 @@ import FacilityOnboarding from '@/pages/facility/Onboarding'
 import PostShift from '@/pages/facility/PostShift'
 import DocumentUpload from '@/pages/professional/DocumentUpload'
 import Onboarding from '@/pages/professional/Onboarding'
+import ShiftDetail from '@/pages/professional/ShiftDetail'
+import ShiftFeed from '@/pages/professional/ShiftFeed'
 
 // Gates a route behind authentication. Pass allowedRoles to also restrict by role
 // (omitted = any signed-in user). Waits for the initial session check so a refresh
@@ -92,6 +94,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['professional']}>
               <DocumentUpload />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professional/shifts"
+          element={
+            <ProtectedRoute allowedRoles={['professional']}>
+              <ShiftFeed />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professional/shifts/:shiftId"
+          element={
+            <ProtectedRoute allowedRoles={['professional']}>
+              <ShiftDetail />
             </ProtectedRoute>
           }
         />

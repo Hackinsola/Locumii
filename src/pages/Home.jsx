@@ -31,6 +31,9 @@ function Home() {
           <Button variant="outline" onClick={() => navigate('/professional/documents')}>
             Upload documents
           </Button>
+          <Button variant="outline" onClick={() => navigate('/professional/shifts')}>
+            Browse shifts
+          </Button>
         </div>
       )}
       {role === 'facility' && (

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 
 const SHIFT_SELECT =
-  'id, role_required, start_time, end_time, pay_rate_naira, requirements, city, status, facility_profiles ( facility_name, avg_rating )';
+  'id, facility_id, role_required, start_time, end_time, pay_rate_naira, requirements, city, status, facility_profiles ( facility_name, avg_rating )';
 const PAGE_SIZE = 20;
 
 // Creates a shift owned by the current facility. status defaults to 'open' and

@@ -11,6 +11,8 @@ import {
   useConfirmCompletion,
   useShiftConfirmation,
 } from '@/hooks/useShiftConfirmation';
+import { useShiftRating, useSubmitRating } from '@/hooks/useRatings';
+import RatingForm from '@/components/ratings/RatingForm';
 import { formatShiftRange } from '@/utils/dateTime';
 import { formatNaira } from '@/utils/money';
 
@@ -37,8 +39,26 @@ function ShiftDetail() {
   const { confirmation, refetch: refetchConfirmation } = useShiftConfirmation(shiftId);
   const { checkIn, loading: checkingIn } = useCheckInShift();
   const { confirm, loading: confirming } = useConfirmCompletion();
+  const { rating, refetch: refetchRating } = useShiftRating(shiftId);
+  const { submitRating, loading: ratingSubmitting } = useSubmitRating();
   const [bidError, setBidError] = useState(null);
   const [completionError, setCompletionError] = useState(null);
+  const [ratingError, setRatingError] = useState(null);
+
+  async function handleSubmitRating(score, comment) {
+    setRatingError(null);
+    const { error: submitError } = await submitRating({
+      shiftId,
+      rateeUserId: shift.facility_id,
+      score,
+      comment,
+    });
+    if (submitError) {
+      setRatingError(submitError.message ?? 'Could not submit your rating.');
+      return;
+    }
+    refetchRating();
+  }
 
   async function handleSubmitBid() {
     setBidError(null);
@@ -138,6 +158,20 @@ function ShiftDetail() {
                   {completionError && (
                     <p className="text-sm text-destructive">{completionError}</p>
                   )}
+                </div>
+              )}
+
+              {shift.status === 'completed' && bid?.status === 'accepted' && (
+                <div className="flex flex-col gap-2 border-t pt-4">
+                  <span className="text-sm font-medium text-foreground">Rate the facility</span>
+                  {rating ? (
+                    <p className="text-sm text-muted-foreground">
+                      You rated this facility {rating.score}/5.
+                    </p>
+                  ) : (
+                    <RatingForm onSubmit={handleSubmitRating} submitting={ratingSubmitting} />
+                  )}
+                  {ratingError && <p className="text-sm text-destructive">{ratingError}</p>}
                 </div>
               )}
             </CardContent>

@@ -6,6 +6,8 @@ import { PROFESSIONAL_SPECIALTIES } from '@/constants/options';
 import { useAcceptBid, useShiftBids } from '@/hooks/useBids';
 import { useShift } from '@/hooks/useShifts';
 import { useConfirmCompletion, useShiftConfirmation } from '@/hooks/useShiftConfirmation';
+import { useShiftRating, useSubmitRating } from '@/hooks/useRatings';
+import RatingForm from '@/components/ratings/RatingForm';
 import { formatShiftRange } from '@/utils/dateTime';
 import { formatNaira } from '@/utils/money';
 
@@ -27,9 +29,28 @@ function ManageBids() {
   const { acceptBid, loading: accepting } = useAcceptBid();
   const { confirmation, refetch: refetchConfirmation } = useShiftConfirmation(shiftId);
   const { confirm, loading: confirming } = useConfirmCompletion();
+  const { rating, refetch: refetchRating } = useShiftRating(shiftId);
+  const { submitRating, loading: ratingSubmitting } = useSubmitRating();
   const [actionError, setActionError] = useState(null);
+  const [ratingError, setRatingError] = useState(null);
 
   const shiftOpen = shift?.status === 'open';
+  const acceptedProfessionalId = bids.find((bid) => bid.status === 'accepted')?.professional_id ?? null;
+
+  async function handleSubmitRating(score, comment) {
+    setRatingError(null);
+    const { error: submitError } = await submitRating({
+      shiftId,
+      rateeUserId: acceptedProfessionalId,
+      score,
+      comment,
+    });
+    if (submitError) {
+      setRatingError(submitError.message ?? 'Could not submit your rating.');
+      return;
+    }
+    refetchRating();
+  }
 
   async function handleAccept(bidId) {
     setActionError(null);
@@ -83,6 +104,20 @@ function ManageBids() {
           ))}
         {shift?.status === 'completed' && (
           <p className="text-sm font-medium text-foreground">Shift completed.</p>
+        )}
+
+        {shift?.status === 'completed' && acceptedProfessionalId && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-foreground">Rate the professional</span>
+            {rating ? (
+              <p className="text-sm text-muted-foreground">
+                You rated this professional {rating.score}/5.
+              </p>
+            ) : (
+              <RatingForm onSubmit={handleSubmitRating} submitting={ratingSubmitting} />
+            )}
+            {ratingError && <p className="text-sm text-destructive">{ratingError}</p>}
+          </div>
         )}
 
         {loading && <p className="text-sm text-muted-foreground">Loading bids…</p>}

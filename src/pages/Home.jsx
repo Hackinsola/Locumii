@@ -34,9 +34,14 @@ function Home() {
         </div>
       )}
       {role === 'facility' && (
-        <Button onClick={() => navigate('/facility/onboarding')}>
-          Complete your facility profile
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button onClick={() => navigate('/facility/onboarding')}>
+            Complete your facility profile
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/facility/post-shift')}>
+            Post a shift
+          </Button>
+        </div>
       )}
       {role === 'admin' && (
         <Button onClick={() => navigate('/admin/credentials')}>Review credentials</Button>

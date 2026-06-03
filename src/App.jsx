@@ -7,6 +7,7 @@ import Register from '@/pages/auth/Register'
 import Reset from '@/pages/auth/Reset'
 import CredentialQueue from '@/pages/admin/CredentialQueue'
 import FacilityOnboarding from '@/pages/facility/Onboarding'
+import PostShift from '@/pages/facility/PostShift'
 import DocumentUpload from '@/pages/professional/DocumentUpload'
 import Onboarding from '@/pages/professional/Onboarding'
 
@@ -99,6 +100,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['facility']}>
               <FacilityOnboarding />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/facility/post-shift"
+          element={
+            <ProtectedRoute allowedRoles={['facility']}>
+              <PostShift />
             </ProtectedRoute>
           }
         />

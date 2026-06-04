@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import AuthLayout from '@/components/layout/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,14 +48,19 @@ function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-xl">Sign in to Locumii</CardTitle>
-          <CardDescription>Welcome back. Enter your details to continue.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <AuthLayout
+      title="Sign in to Locumii"
+      description="Welcome back. Enter your details to continue."
+      footer={
+        <>
+          New to Locumii?{' '}
+          <Link to="/auth/register" className="text-primary underline-offset-4 hover:underline">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className="text-sm font-medium text-foreground">Email</label>
               <Input
@@ -94,20 +99,11 @@ function Login() {
 
             {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
-            <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
-              {loading ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
-
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            New to Locumii?{' '}
-            <Link to="/auth/register" className="text-primary underline-offset-4 hover:underline">
-              Create an account
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
+          {loading ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }
 

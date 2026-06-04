@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import AuthLayout from '@/components/layout/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -49,14 +49,16 @@ function Reset() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-xl">Choose a new password</CardTitle>
-          <CardDescription>Enter and confirm your new password below.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <AuthLayout
+      title="Choose a new password"
+      description="Enter and confirm your new password below."
+      footer={
+        <Link to="/auth/login" className="text-primary underline-offset-4 hover:underline">
+          Back to sign in
+        </Link>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="password" className="text-sm font-medium text-foreground">
                 New password
@@ -93,19 +95,11 @@ function Reset() {
 
             {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
-            <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
-              {loading ? 'Updating…' : 'Update password'}
-            </Button>
-          </form>
-
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            <Link to="/auth/login" className="text-primary underline-offset-4 hover:underline">
-              Back to sign in
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
+          {loading ? 'Updating…' : 'Update password'}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }
 

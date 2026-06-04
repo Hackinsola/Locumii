@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FACILITY_TYPES, FCT_CITIES } from '@/constants/options';
+import { validateCACNumber, validateNigerianPhone } from '@/utils/validators';
 import { useSaveFacilityProfile } from '@/hooks/useProfile';
+import PageContainer from '@/components/layout/PageContainer';
 
 // Launch geography is Abuja/FCT only, so state is fixed and the city comes from
 // the FCT area councils.
@@ -24,6 +26,7 @@ function Onboarding() {
     address: '',
     city: '',
     contactName: '',
+    contactPhone: '',
   });
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
@@ -43,6 +46,8 @@ function Onboarding() {
     }
     if (form.cacNumber.trim().length === 0) {
       next.cacNumber = 'Enter the CAC registration number.';
+    } else if (!validateCACNumber(form.cacNumber)) {
+      next.cacNumber = 'Enter a valid CAC number, e.g. RC123456 or BN1234567.';
     }
     if (form.address.trim().length === 0) {
       next.address = 'Enter the facility address.';
@@ -52,6 +57,9 @@ function Onboarding() {
     }
     if (form.contactName.trim().length === 0) {
       next.contactName = 'Enter the contact person’s name.';
+    }
+    if (!validateNigerianPhone(form.contactPhone)) {
+      next.contactPhone = 'Enter a valid Nigerian phone number, e.g. 08012345678.';
     }
     return next;
   }
@@ -72,6 +80,7 @@ function Onboarding() {
       city: form.city,
       state: FIXED_STATE,
       contactName: form.contactName.trim(),
+      contactPhone: form.contactPhone.trim(),
     });
     if (error) {
       setSubmitError(error.message ?? 'Could not save your profile. Please try again.');
@@ -81,8 +90,8 @@ function Onboarding() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-lg">
+    <PageContainer>
+      <Card>
         <CardHeader>
           <CardTitle className="text-xl">Complete your facility profile</CardTitle>
           <CardDescription>
@@ -200,6 +209,25 @@ function Onboarding() {
               )}
             </div>
 
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="contactPhone" className="text-sm font-medium text-foreground">
+                Contact phone
+              </label>
+              <Input
+                id="contactPhone"
+                name="contactPhone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="08012345678"
+                value={form.contactPhone}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.contactPhone)}
+              />
+              {errors.contactPhone && (
+                <p className="text-sm text-destructive">{errors.contactPhone}</p>
+              )}
+            </div>
+
             {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
             <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
@@ -208,7 +236,7 @@ function Onboarding() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

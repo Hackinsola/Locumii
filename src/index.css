@@ -7,7 +7,24 @@
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'Geist Variable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+    /* Brand teal — exposed as a utility so it stays teal on dark surfaces too
+       (the .dark block remaps --primary to white for white-on-black buttons). */
+    --color-brand-primary: var(--brand-primary);
+    --color-brand-primary-muted: var(--brand-primary-muted);
+    /* Brand amber — reserved for Naira amounts / payout moments (ui-context.md). */
+    --color-brand-accent: var(--brand-accent);
+    --color-brand-accent-hover: var(--brand-accent-hover);
+    --color-brand-accent-light: var(--brand-accent-light);
+    /* Semantic status colours — badges/alerts (ui-context.md). Each pairs a text
+       colour with a light-surface background tint. */
+    --color-status-success: #16a34a;
+    --color-status-success-bg: #f0fdf4;
+    --color-status-info: #2563eb;
+    --color-status-info-bg: #eff6ff;
+    --color-status-warning: #d97706;
+    --color-status-warning-bg: #fffbeb;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,72 +66,85 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    /* Locumii brand — Clerk-accurate light surface (Context/ui-context.md).
+       Pure neutral greys (R=G=B), teal reserved for interactive/brand only,
+       amber reserved for Naira amounts. */
+    --brand-primary: #0b6e6e;
+    --brand-primary-hover: #095a5a;
+    --brand-primary-light: #e6f4f4;
+    --brand-primary-muted: #4a9a9a;
+    --brand-accent: #d4900a;
+    --brand-accent-hover: #b87a08;
+    --brand-accent-light: #fdf3dc;
+
+    --background: #ffffff;
+    --foreground: #111111;
+    --card: #ffffff;
+    --card-foreground: #111111;
+    --popover: #ffffff;
+    --popover-foreground: #111111;
+    --primary: var(--brand-primary);
+    --primary-foreground: #ffffff;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #111111;
+    --muted: #fafafa;
+    --muted-foreground: #6b7280;
+    --accent: #f4f4f5;
+    --accent-foreground: #111111;
+    --destructive: #dc2626;
+    --border: #e5e5e5;
+    --input: #d1d5db;
+    --ring: var(--brand-primary);
+    --chart-1: #0b6e6e;
+    --chart-2: #4a9a9a;
+    --chart-3: #d4900a;
+    --chart-4: #6b7280;
+    --chart-5: #9ca3af;
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar: #fafafa;
+    --sidebar-foreground: #111111;
+    --sidebar-primary: var(--brand-primary);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f4f4f5;
+    --sidebar-accent-foreground: #111111;
+    --sidebar-border: #e5e5e5;
+    --sidebar-ring: var(--brand-primary);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    /* Pure neutral dark surfaces (ui-context.md). On dark, the primary CTA is
+       white-on-black; teal stays for links/active/focus. Not toggled today. */
+    --background: #0a0a0a;
+    --foreground: #ffffff;
+    --card: #111111;
+    --card-foreground: #ffffff;
+    --popover: #111111;
+    --popover-foreground: #ffffff;
+    --primary: #ffffff;
+    --primary-foreground: #111111;
+    --secondary: #1a1a1a;
+    --secondary-foreground: #ffffff;
+    --muted: #1a1a1a;
+    --muted-foreground: #888888;
+    --accent: #1a1a1a;
+    --accent-foreground: #ffffff;
+    --destructive: #f87171;
+    --border: #1f1f1f;
+    --input: #2a2a2a;
+    --ring: #4a9a9a;
+    --chart-1: #4a9a9a;
+    --chart-2: #0b6e6e;
+    --chart-3: #d4900a;
+    --chart-4: #888888;
+    --chart-5: #6b7280;
+    --sidebar: #0d0d0d;
+    --sidebar-foreground: #ffffff;
+    --sidebar-primary: #ffffff;
+    --sidebar-primary-foreground: #111111;
+    --sidebar-accent: #1a1a1a;
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: #1f1f1f;
+    --sidebar-ring: #4a9a9a;
 }
 
 @layer base {

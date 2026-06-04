@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import AuthLayout from '@/components/layout/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_PATTERN = /^\+?\d{10,14}$/;
+// Nigerian mobile number: local 11-digit form (0 then 7/8/9, e.g. 08012345678)
+// or the +234 international equivalent (e.g. +2348012345678).
+const PHONE_PATTERN = /^(0[789]\d{9}|\+234[789]\d{9})$/;
 const MIN_PASSWORD_LENGTH = 8;
 
 function Register() {
@@ -39,8 +41,8 @@ function Register() {
     if (!EMAIL_PATTERN.test(form.email)) {
       next.email = 'Enter a valid email address.';
     }
-    if (!PHONE_PATTERN.test(form.phone)) {
-      next.phone = 'Enter a valid phone number, e.g. +2348012345678.';
+    if (!PHONE_PATTERN.test(form.phone.trim())) {
+      next.phone = 'Enter a valid Nigerian phone number, e.g. 08012345678 or +2348012345678.';
     }
     if (form.password.length < MIN_PASSWORD_LENGTH) {
       next.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
@@ -73,14 +75,19 @@ function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-xl">Create your Locumii account</CardTitle>
-          <CardDescription>Join as a healthcare professional or a facility.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <AuthLayout
+      title="Create your Locumii account"
+      description="Join as a healthcare professional or a facility."
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link to="/auth/login" className="text-primary underline-offset-4 hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
             <div className="flex flex-col gap-1.5">
               <span className="text-sm font-medium text-foreground">I am a&hellip;</span>
               <div className="grid grid-cols-2 gap-2">
@@ -165,20 +172,11 @@ function Register() {
 
             {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
-            <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
-              {loading ? 'Creating account…' : 'Create account'}
-            </Button>
-          </form>
-
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link to="/auth/login" className="text-primary underline-offset-4 hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
+          {loading ? 'Creating account…' : 'Create account'}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }
 

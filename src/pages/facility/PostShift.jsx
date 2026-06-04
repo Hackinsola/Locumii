@@ -4,16 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import { FCT_CITIES } from '@/constants/options';
-import { useCreateShift } from '@/hooks/useShifts';
-import { nairaToKobo } from '@/utils/money';
+import { usePostPaidShift } from '@/hooks/usePayments';
+import { useAuth } from '@/hooks/useAuth';
+import { openPaystackPopup } from '@/lib/paystack';
+import { calculateCommission, calculateNet, formatNaira, nairaToKobo } from '@/utils/money';
+import { COMMISSION_RATE } from '@/constants/fees';
+import PageContainer from '@/components/layout/PageContainer';
 
 const selectClasses =
   'h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20';
 
 function PostShift() {
   const navigate = useNavigate();
-  const { createShift, loading } = useCreateShift();
+  const { postPaidShift, loading: paying } = usePostPaidShift();
+  const { email } = useAuth();
   const [form, setForm] = useState({
     roleRequired: '',
     startTime: '',
@@ -24,6 +30,7 @@ function PostShift() {
   });
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -54,7 +61,7 @@ function PostShift() {
     return next;
   }
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
     setSubmitError(null);
     const nextErrors = validate();
@@ -62,30 +69,55 @@ function PostShift() {
     if (Object.keys(nextErrors).length > 0) {
       return;
     }
-    const { error } = await createShift({
-      roleRequired: form.roleRequired.trim(),
-      startTime: new Date(form.startTime).toISOString(),
-      endTime: new Date(form.endTime).toISOString(),
-      payRateKobo: nairaToKobo(form.payRate),
-      requirements: form.requirements.trim(),
-      city: form.city,
-    });
-    if (error) {
+    // Show the payment summary before opening Paystack.
+    setShowSummary(true);
+  }
+
+  async function finalisePostedShift(reference, draft) {
+    const { shiftId, error } = await postPaidShift({ reference, shift: draft });
+    if (error || !shiftId) {
       setSubmitError(
-        'Could not post the shift. Make sure your facility profile is complete, then try again.'
+        error?.message ??
+          'We could not confirm your payment. If you were charged, contact support before retrying.'
       );
       return;
     }
-    navigate('/');
+    navigate('/facility/shifts');
+  }
+
+  function handleConfirmPay() {
+    setShowSummary(false);
+    setSubmitError(null);
+    const grossKobo = nairaToKobo(form.payRate);
+    const reference = `locumii-${crypto.randomUUID()}`;
+    const draft = {
+      roleRequired: form.roleRequired.trim(),
+      startTime: new Date(form.startTime).toISOString(),
+      endTime: new Date(form.endTime).toISOString(),
+      payRateKobo: grossKobo,
+      requirements: form.requirements.trim(),
+      city: form.city,
+    };
+    try {
+      openPaystackPopup({
+        email,
+        amountKobo: grossKobo,
+        reference,
+        onSuccess: (response) => finalisePostedShift(response?.reference ?? reference, draft),
+        onClose: () => setSubmitError('Payment cancelled — your shift was not posted.'),
+      });
+    } catch (caught) {
+      setSubmitError(caught.message ?? 'Could not open the payment window.');
+    }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-lg">
+    <PageContainer>
+      <Card>
         <CardHeader>
           <CardTitle className="text-xl">Post a shift</CardTitle>
           <CardDescription>
-            Verified professionals can bid on open shifts. Payment is collected in a later step.
+            You pay for the shift upfront via Paystack. Verified professionals can then bid on it.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -153,6 +185,18 @@ function PostShift() {
                 aria-invalid={Boolean(errors.payRate)}
               />
               {errors.payRate && <p className="text-sm text-destructive">{errors.payRate}</p>}
+              {Number(form.payRate) > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Platform fee ({COMMISSION_RATE * 100}%):{' '}
+                  <span className="font-mono">
+                    {formatNaira(calculateCommission(nairaToKobo(form.payRate)))}
+                  </span>{' '}
+                  · the professional receives{' '}
+                  <span className="font-mono">
+                    {formatNaira(calculateNet(nairaToKobo(form.payRate)))}
+                  </span>
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -194,13 +238,27 @@ function PostShift() {
 
             {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
-            <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
-              {loading ? 'Posting…' : 'Post shift'}
+            <Button type="submit" size="lg" className="mt-1 w-full" disabled={paying}>
+              {paying ? 'Processing payment…' : 'Review & pay'}
             </Button>
           </form>
         </CardContent>
       </Card>
-    </div>
+
+      <ConfirmModal
+        isOpen={showSummary}
+        title="Confirm payment"
+        message={
+          Number(form.payRate) > 0
+            ? `You'll be charged ${formatNaira(nairaToKobo(form.payRate))} now for this shift. The ${COMMISSION_RATE * 100}% platform fee is deducted from the professional's payout, not added on top.`
+            : ''
+        }
+        confirmLabel="Confirm & pay"
+        busy={paying}
+        onConfirm={handleConfirmPay}
+        onCancel={() => setShowSummary(false)}
+      />
+    </PageContainer>
   );
 }
 

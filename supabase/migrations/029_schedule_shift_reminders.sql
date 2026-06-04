@@ -1,0 +1,30 @@
+-- 029_schedule_shift_reminders.sql
+-- Schedules send-shift-reminder to run every 15 minutes via pg_cron + pg_net.
+-- This is a SETUP step, not auto-applied with the rest: it only works once the
+-- Edge Function is deployed AND the vault secrets from 027 (project_url,
+-- service_role_key) exist. Run it manually after both are in place.
+--
+-- The commented block below is the exact command to run. It is left commented so
+-- applying this migration on a fresh project (no function, no secrets) does not
+-- error or register a job that 404s every 15 minutes.
+--
+--   create extension if not exists pg_cron with schema extensions;
+--
+--   select cron.schedule(
+--     'shift-reminders',
+--     '*/15 * * * *',
+--     $$
+--       select net.http_post(
+--         url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url')
+--                  || '/functions/v1/send-shift-reminder',
+--         headers := jsonb_build_object(
+--           'Content-Type', 'application/json',
+--           'Authorization', 'Bearer ' ||
+--             (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')
+--         ),
+--         body := '{}'::jsonb
+--       );
+--     $$
+--   );
+--
+-- To remove it later:  select cron.unschedule('shift-reminders');

@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CREDENTIAL_DOC_TYPES, PROFESSIONAL_SPECIALTIES } from '@/constants/options';
 import { usePendingCredentials, useReviewCredential } from '@/hooks/useAdminCredentials';
+import PageContainer from '@/components/layout/PageContainer';
 
 const DOC_LABELS = Object.fromEntries(CREDENTIAL_DOC_TYPES.map((item) => [item.value, item.label]));
 const SPECIALTY_LABELS = Object.fromEntries(
@@ -31,7 +31,6 @@ function groupByProfessional(credentials) {
 }
 
 function CredentialQueue() {
-  const navigate = useNavigate();
   const { credentials, loading, error, refetch } = usePendingCredentials();
   const { reviewCredential, verifyProfessional, getDocumentUrl, loading: acting } =
     useReviewCredential();
@@ -60,16 +59,10 @@ function CredentialQueue() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-medium text-foreground">Credential review</h1>
-            <p className="text-sm text-muted-foreground">Documents awaiting approval.</p>
-          </div>
-          <Button variant="outline" onClick={() => navigate('/')}>
-            Home
-          </Button>
+    <PageContainer>
+        <div>
+          <h1 className="text-xl font-medium text-foreground">Credential review</h1>
+          <p className="text-sm text-muted-foreground">Documents awaiting approval.</p>
         </div>
 
         {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
@@ -129,8 +122,7 @@ function CredentialQueue() {
             </CardContent>
           </Card>
         ))}
-      </div>
-    </div>
+    </PageContainer>
   );
 }
 

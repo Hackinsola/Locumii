@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FCT_CITIES, PROFESSIONAL_SPECIALTIES } from '@/constants/options';
+import { COUNCIL_REG_HINTS, validateCouncilRegNumber } from '@/utils/validators';
 import { useSaveProfessionalProfile } from '@/hooks/useProfile';
+import PageContainer from '@/components/layout/PageContainer';
 
 const SPECIALTY_VALUES = PROFESSIONAL_SPECIALTIES.map((item) => item.value);
 const selectClasses =
@@ -49,6 +51,11 @@ function Onboarding() {
     }
     if (form.councilRegNumber.trim().length === 0) {
       next.councilRegNumber = 'Enter your council registration number.';
+    } else if (
+      SPECIALTY_VALUES.includes(form.specialty) &&
+      !validateCouncilRegNumber(form.specialty, form.councilRegNumber)
+    ) {
+      next.councilRegNumber = `Enter a valid registration number (format: ${COUNCIL_REG_HINTS[form.specialty]}).`;
     }
     const years = Number(form.yearsExperience);
     if (!Number.isInteger(years) || years < 0) {
@@ -85,8 +92,8 @@ function Onboarding() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-lg">
+    <PageContainer>
+      <Card>
         <CardHeader>
           <CardTitle className="text-xl">Complete your professional profile</CardTitle>
           <CardDescription>
@@ -207,7 +214,7 @@ function Onboarding() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

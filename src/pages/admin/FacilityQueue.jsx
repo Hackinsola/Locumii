@@ -1,0 +1,99 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import { FACILITY_TYPES } from '@/constants/options';
+import { usePendingFacilities, useVerifyFacility } from '@/hooks/useAdmin';
+import { formatDate } from '@/utils/dateTime';
+import PageContainer from '@/components/layout/PageContainer';
+
+const FACILITY_TYPE_LABELS = Object.fromEntries(
+  FACILITY_TYPES.map((item) => [item.value, item.label])
+);
+
+function FacilityQueue() {
+  const navigate = useNavigate();
+  const { facilities, loading, error, refetch } = usePendingFacilities();
+  const { approveFacility, loading: approving } = useVerifyFacility();
+  const [pendingApproval, setPendingApproval] = useState(null);
+  const [actionError, setActionError] = useState(null);
+
+  async function handleConfirmApprove() {
+    setActionError(null);
+    const { error: approveError } = await approveFacility(pendingApproval.user_id);
+    if (approveError) {
+      setActionError(approveError.message ?? 'Could not verify this facility.');
+      setPendingApproval(null);
+      return;
+    }
+    setPendingApproval(null);
+    refetch();
+  }
+
+  return (
+    <PageContainer>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h1 className="text-xl font-medium text-foreground">Facility verification</h1>
+            <p className="text-sm text-muted-foreground">Facilities awaiting manual verification.</p>
+          </div>
+          <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>
+            Dashboard
+          </Button>
+        </div>
+
+        {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+        {error && <p className="text-sm text-destructive">Could not load the facility queue.</p>}
+        {!loading && !error && facilities.length === 0 && (
+          <p className="text-sm text-muted-foreground">No facilities are awaiting verification.</p>
+        )}
+        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
+
+        {facilities.map((facility) => (
+          <Card key={facility.user_id}>
+            <CardHeader>
+              <CardTitle className="text-base">{facility.facility_name}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground">
+                {FACILITY_TYPE_LABELS[facility.facility_type] ?? facility.facility_type} ·{' '}
+                {facility.city}
+              </p>
+              <p className="text-sm text-muted-foreground">CAC: {facility.cac_number}</p>
+              <p className="text-sm text-muted-foreground">
+                {facility.contact_name}
+                {facility.contact_phone ? ` · ${facility.contact_phone}` : ''}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Submitted {formatDate(facility.created_at)}
+              </p>
+              <Button
+                className="mt-1 self-start"
+                onClick={() => setPendingApproval(facility)}
+                disabled={approving}
+              >
+                Verify facility
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+
+      <ConfirmModal
+        isOpen={Boolean(pendingApproval)}
+        title="Verify this facility?"
+        message={
+          pendingApproval
+            ? `Mark ${pendingApproval.facility_name} as verified. They will be able to post shifts.`
+            : ''
+        }
+        confirmLabel="Verify"
+        busy={approving}
+        onConfirm={handleConfirmApprove}
+        onCancel={() => setPendingApproval(null)}
+      />
+    </PageContainer>
+  );
+}
+
+export default FacilityQueue;

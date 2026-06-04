@@ -1,83 +1,120 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PageContainer from '@/components/layout/PageContainer';
+import EmptyState from '@/components/ui/EmptyState';
 import ShiftCard from '@/components/shifts/ShiftCard';
 import { FCT_CITIES } from '@/constants/options';
 import { useOpenShifts } from '@/hooks/useShifts';
+import { nairaToKobo } from '@/utils/money';
 
 const selectClasses =
   'h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
+const EMPTY_FILTERS = { city: '', role: '', date: '', minPay: '' };
 
 function ShiftFeed() {
-  const navigate = useNavigate();
-  const [filters, setFilters] = useState({ city: '', role: '', date: '' });
-  const { shifts, loading, error } = useOpenShifts(filters);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const { shifts, loading, error, hasMore, loadMore } = useOpenShifts({
+    city: filters.city,
+    role: filters.role,
+    date: filters.date,
+    minPayKobo: Number(filters.minPay) > 0 ? nairaToKobo(filters.minPay) : undefined,
+  });
+
+  const hasActiveFilters = Object.values(filters).some((value) => value !== '');
 
   function handleFilterChange(event) {
     const { name, value } = event.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   }
 
+  function clearFilters() {
+    setFilters(EMPTY_FILTERS);
+  }
+
   return (
-    <div className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-medium text-foreground">Open shifts</h1>
-            <p className="text-sm text-muted-foreground">Browse and bid on available shifts.</p>
+    <PageContainer>
+        <div>
+          <h1 className="text-xl font-medium text-foreground">Open shifts</h1>
+          <p className="text-sm text-muted-foreground">Browse and bid on available shifts.</p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <select
+              name="city"
+              value={filters.city}
+              onChange={handleFilterChange}
+              className={selectClasses}
+              aria-label="Filter by location"
+            >
+              <option value="">All locations</option>
+              {FCT_CITIES.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+            <Input
+              name="role"
+              placeholder="Role contains…"
+              value={filters.role}
+              onChange={handleFilterChange}
+              aria-label="Filter by role"
+            />
+            <Input
+              name="date"
+              type="date"
+              value={filters.date}
+              onChange={handleFilterChange}
+              aria-label="Filter by date"
+            />
+            <Input
+              name="minPay"
+              type="number"
+              min="0"
+              step="1000"
+              placeholder="Min pay (₦)"
+              value={filters.minPay}
+              onChange={handleFilterChange}
+              aria-label="Filter by minimum pay in Naira"
+            />
           </div>
-          <Button variant="outline" onClick={() => navigate('/')}>
-            Home
-          </Button>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="self-start text-sm text-primary underline-offset-4 hover:underline"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
-          <select
-            name="city"
-            value={filters.city}
-            onChange={handleFilterChange}
-            className={selectClasses}
-            aria-label="Filter by location"
-          >
-            <option value="">All locations</option>
-            {FCT_CITIES.map((city) => (
-              <option key={city} value={city}>
-                {city}
-              </option>
-            ))}
-          </select>
-          <Input
-            name="role"
-            placeholder="Role contains…"
-            value={filters.role}
-            onChange={handleFilterChange}
-            aria-label="Filter by role"
-          />
-          <Input
-            name="date"
-            type="date"
-            value={filters.date}
-            onChange={handleFilterChange}
-            aria-label="Filter by date"
-          />
-        </div>
-
-        {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
         {error && <p className="text-sm text-destructive">Could not load shifts.</p>}
         {!loading && !error && shifts.length === 0 && (
-          <p className="text-sm text-muted-foreground">No open shifts match your filters.</p>
+          <EmptyState icon={SearchX}>
+            No open shifts match your filters. Check back soon.
+          </EmptyState>
         )}
 
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 md:grid-cols-2">
           {shifts.map((shift) => (
             <Link key={shift.id} to={`/professional/shifts/${shift.id}`} className="block">
               <ShiftCard shift={shift} />
             </Link>
           ))}
         </div>
-      </div>
-    </div>
+
+        {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+        {!loading && hasMore && (
+          <Button variant="outline" className="self-center" onClick={loadMore}>
+            Load more
+          </Button>
+        )}
+    </PageContainer>
   );
 }
 

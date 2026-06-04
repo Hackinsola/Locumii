@@ -24,8 +24,22 @@ async function fetchIsVerified(userId, role) {
   return Boolean(data?.is_verified);
 }
 
-// Push the current Supabase session (and derived verified flag) into the store.
-// Pass session = null to represent a signed-out state.
+// Read the account status from the user's own users row (RLS: users_select_own).
+// Used to block suspended accounts; pending/active are allowed through.
+async function fetchAccountStatus(userId) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('status')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) {
+    throw error;
+  }
+  return data?.status ?? null;
+}
+
+// Push the current Supabase session (and derived verified flag + account status)
+// into the store. Pass session = null to represent a signed-out state.
 async function syncAuthStore(session) {
   const { setAuth, clearAuth } = useAuthStore.getState();
   if (!session) {
@@ -33,12 +47,18 @@ async function syncAuthStore(session) {
     return;
   }
   let isVerified = false;
+  let status = null;
   try {
     isVerified = await fetchIsVerified(session.user.id, session.user.app_metadata?.role);
   } catch (error) {
     console.error('Failed to load verification status', error);
   }
-  setAuth(session, isVerified);
+  try {
+    status = await fetchAccountStatus(session.user.id);
+  } catch (error) {
+    console.error('Failed to load account status', error);
+  }
+  setAuth(session, isVerified, status);
 }
 
 // Mount once at the app root. Loads the existing session on start and keeps the
@@ -79,6 +99,7 @@ export function useAuth() {
   const email = useAuthStore((state) => state.session?.user?.email ?? null);
   const role = useAuthStore((state) => state.role);
   const isVerified = useAuthStore((state) => state.isVerified);
+  const status = useAuthStore((state) => state.status);
   const isInitialized = useAuthStore((state) => state.isInitialized);
   const isAuthenticated = useAuthStore((state) => Boolean(state.session));
 
@@ -186,6 +207,7 @@ export function useAuth() {
     email,
     role,
     isVerified,
+    status,
     isInitialized,
     isAuthenticated,
     register,

@@ -8,6 +8,7 @@ const emptyAuth = {
   userId: null,
   role: null, // 'professional' | 'facility' | 'admin' | null
   isVerified: false,
+  status: null, // users.status: 'pending' | 'active' | 'suspended' | null; gates suspended access
   session: null, // Supabase Session (carries the access token); null when signed out
 };
 
@@ -18,14 +19,15 @@ export const useAuthStore = create((set) => ({
   // instead of flashing the login page on a refresh.
   isInitialized: false,
 
-  // Set the full auth context from a Supabase session plus the verified flag read
-  // from the user's profile row. Pass session = null to represent "signed out".
-  setAuth: (session, isVerified = false) =>
+  // Set the full auth context from a Supabase session plus the verified flag and
+  // account status read from the user's rows. Pass session = null for "signed out".
+  setAuth: (session, isVerified = false, status = null) =>
     set({
       session: session ?? null,
       userId: session?.user?.id ?? null,
       role: session?.user?.app_metadata?.role ?? null,
       isVerified: Boolean(isVerified),
+      status: status ?? null,
       isInitialized: true,
     }),
 

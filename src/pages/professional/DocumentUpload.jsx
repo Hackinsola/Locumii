@@ -3,25 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  ACCEPTED_DOC_MIME_TYPES,
-  CREDENTIAL_DOC_TYPES,
-  MAX_DOC_SIZE_BYTES,
-} from '@/constants/options';
+import { ACCEPTED_DOC_MIME_TYPES, CREDENTIAL_DOC_TYPES } from '@/constants/options';
+import { validateFileUpload } from '@/utils/validators';
 import { useUploadCredential } from '@/hooks/useCredentials';
-
-function validateFile(file) {
-  if (!file) {
-    return 'Select a file.';
-  }
-  if (!ACCEPTED_DOC_MIME_TYPES.includes(file.type)) {
-    return 'File must be a PDF, PNG, or JPEG.';
-  }
-  if (file.size > MAX_DOC_SIZE_BYTES) {
-    return 'File must be 10 MB or smaller.';
-  }
-  return null;
-}
+import PageContainer from '@/components/layout/PageContainer';
 
 function DocumentUpload() {
   const navigate = useNavigate();
@@ -34,7 +19,7 @@ function DocumentUpload() {
   function handleFileChange(docType, event) {
     const file = event.target.files?.[0] ?? null;
     setFiles((prev) => ({ ...prev, [docType]: file }));
-    setErrors((prev) => ({ ...prev, [docType]: validateFile(file) }));
+    setErrors((prev) => ({ ...prev, [docType]: validateFileUpload(file) }));
   }
 
   async function handleSubmit(event) {
@@ -43,7 +28,7 @@ function DocumentUpload() {
 
     const nextErrors = {};
     CREDENTIAL_DOC_TYPES.forEach(({ value }) => {
-      nextErrors[value] = validateFile(files[value]);
+      nextErrors[value] = validateFileUpload(files[value]);
     });
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean)) {
@@ -64,8 +49,8 @@ function DocumentUpload() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-lg">
+    <PageContainer>
+      <Card>
         <CardHeader>
           <CardTitle className="text-xl">Upload your credentials</CardTitle>
           <CardDescription>
@@ -100,7 +85,7 @@ function DocumentUpload() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

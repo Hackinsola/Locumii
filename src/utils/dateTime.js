@@ -17,6 +17,20 @@ const timeFormat = new Intl.DateTimeFormat('en-NG', {
   hour12: true,
 });
 
+const dateFormat = new Intl.DateTimeFormat('en-NG', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
+
+// e.g. "8 Jun 2026" — for ratings dates and "member since" lines.
+export function formatDate(iso) {
+  if (!iso) {
+    return '';
+  }
+  return dateFormat.format(new Date(iso));
+}
+
 export function formatDateTime(iso) {
   if (!iso) {
     return '';
@@ -30,4 +44,52 @@ export function formatShiftRange(startIso, endIso) {
     return '';
   }
   return `${dateTimeFormat.format(new Date(startIso))} – ${timeFormat.format(new Date(endIso))}`;
+}
+
+// Countdown to a future time, e.g. "Starts in 2 days 4 hrs", "Starts in 3 hrs",
+// "Starting now" once it's in the past. For the dashboard upcoming-shift card.
+export function formatCountdown(iso) {
+  if (!iso) {
+    return '';
+  }
+  const diffMs = new Date(iso).getTime() - Date.now();
+  if (diffMs <= 0) {
+    return 'Starting now';
+  }
+  const totalMinutes = Math.floor(diffMs / 60000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+  if (days > 0) {
+    return `Starts in ${days} day${days === 1 ? '' : 's'}${hours > 0 ? ` ${hours} hr${hours === 1 ? '' : 's'}` : ''}`;
+  }
+  if (hours > 0) {
+    return `Starts in ${hours} hr${hours === 1 ? '' : 's'}${minutes > 0 ? ` ${minutes} min` : ''}`;
+  }
+  return `Starts in ${minutes} min`;
+}
+
+// Coarse "time ago" label for the notification feed, e.g. "just now", "5 min ago",
+// "2 hrs ago", "3 days ago". Falls back to a date for anything older than a week.
+export function formatRelativeTime(iso) {
+  if (!iso) {
+    return '';
+  }
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 60) {
+    return 'just now';
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} min ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} ${hours === 1 ? 'hr' : 'hrs'} ago`;
+  }
+  const days = Math.floor(hours / 24);
+  if (days < 7) {
+    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  }
+  return formatDate(iso);
 }

@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 function StatCard({ label, value, mono = false, accent = false, icon: Icon }) {
   return (
     <Card className="transition-shadow hover:shadow-sm">
-      <CardContent className="flex items-start justify-between gap-2 p-4">
+      <CardContent className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1">
           <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
           <span

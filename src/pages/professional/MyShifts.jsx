@@ -5,6 +5,7 @@ import { CalendarX2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import StatusBadge from '@/components/shifts/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
+import PageHeader from '@/components/layout/PageHeader';
 import { useProfessionalBids } from '@/hooks/useBids';
 import { formatShiftRange } from '@/utils/dateTime';
 import { formatNaira } from '@/utils/money';
@@ -111,17 +112,13 @@ function MyShifts() {
 
   return (
     <PageContainer>
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h1 className="text-xl font-medium text-foreground">Your shifts</h1>
-            <p className="text-sm text-muted-foreground">
-              Work you’ve been accepted for and the status of your bids.
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => navigate('/professional/shifts')}>
-            Browse shifts
-          </Button>
-        </div>
+        <PageHeader
+          title="Your shifts"
+          subtitle="Work you’ve been accepted for and the status of your bids."
+          actions={
+            <Button onClick={() => navigate('/professional/shifts')}>Browse shifts</Button>
+          }
+        />
 
         <div className="flex flex-wrap gap-2">
           {BID_TABS.map((tab) => (

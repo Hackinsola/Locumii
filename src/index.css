@@ -69,10 +69,11 @@
     /* Locumii brand — Clerk-accurate light surface (Context/ui-context.md).
        Pure neutral greys (R=G=B), teal reserved for interactive/brand only,
        amber reserved for Naira amounts. */
-    --brand-primary: #0b6e6e;
-    --brand-primary-hover: #095a5a;
-    --brand-primary-light: #e6f4f4;
-    --brand-primary-muted: #4a9a9a;
+    /* Brand primary is BLACK (teal retired). One strong accent, monochrome system. */
+    --brand-primary: #111111;
+    --brand-primary-hover: #000000;
+    --brand-primary-light: #f4f4f5;
+    --brand-primary-muted: #4b5563;
     --brand-accent: #d4900a;
     --brand-accent-hover: #b87a08;
     --brand-accent-light: #fdf3dc;
@@ -88,15 +89,15 @@
     --secondary: #f4f4f5;
     --secondary-foreground: #111111;
     --muted: #fafafa;
-    --muted-foreground: #6b7280;
+    --muted-foreground: #4b5563;
     --accent: #f4f4f5;
     --accent-foreground: #111111;
     --destructive: #dc2626;
     --border: #e5e5e5;
     --input: #d1d5db;
     --ring: var(--brand-primary);
-    --chart-1: #0b6e6e;
-    --chart-2: #4a9a9a;
+    --chart-1: #111111;
+    --chart-2: #4b5563;
     --chart-3: #d4900a;
     --chart-4: #6b7280;
     --chart-5: #9ca3af;
@@ -131,9 +132,9 @@
     --destructive: #f87171;
     --border: #1f1f1f;
     --input: #2a2a2a;
-    --ring: #4a9a9a;
-    --chart-1: #4a9a9a;
-    --chart-2: #0b6e6e;
+    --ring: #a1a1aa;
+    --chart-1: #a1a1aa;
+    --chart-2: #71717a;
     --chart-3: #d4900a;
     --chart-4: #888888;
     --chart-5: #6b7280;
@@ -144,7 +145,7 @@
     --sidebar-accent: #1a1a1a;
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: #1f1f1f;
-    --sidebar-ring: #4a9a9a;
+    --sidebar-ring: #a1a1aa;
 }
 
 @layer base {

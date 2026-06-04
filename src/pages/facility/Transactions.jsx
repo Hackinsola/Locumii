@@ -1,9 +1,10 @@
 import { BarChart3, CheckCircle2, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import PageContainer from '@/components/layout/PageContainer';
+import PageHeader from '@/components/layout/PageHeader';
 import { useFacilityTransactions } from '@/hooks/usePayments';
 import { formatNaira } from '@/utils/money';
 import { formatDate } from '@/utils/dateTime';
-import PageContainer from '@/components/layout/PageContainer';
 
 const STATUS_LABELS = {
   escrow: 'In escrow',
@@ -40,10 +41,7 @@ function Transactions() {
 
   return (
     <PageContainer>
-        <div>
-          <h1 className="text-xl font-medium text-foreground">Transactions</h1>
-          <p className="text-sm text-muted-foreground">Payments for your completed shifts.</p>
-        </div>
+        <PageHeader title="Transactions" subtitle="Payments for your completed shifts." />
 
         <div className="grid grid-cols-3 gap-3">
           <StatCard label="Total spent" value={formatNaira(summary.totalSpentKobo)} icon={Wallet} />

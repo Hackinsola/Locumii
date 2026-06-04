@@ -29,7 +29,7 @@ function AuthLayout({ title, description, children, footer }) {
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-40 -left-20 h-[28rem] w-[28rem] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(11,110,110,0.22), transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.07), transparent 70%)' }}
         />
 
         <Link to="/" className="relative" aria-label="Locumii home">
@@ -43,7 +43,7 @@ function AuthLayout({ title, description, children, footer }) {
           <ul className="flex flex-col gap-4">
             {POINTS.map((point) => (
               <li key={point.text} className="flex items-start gap-3">
-                <point.icon className="mt-0.5 size-5 shrink-0 text-brand-primary" aria-hidden="true" />
+                <point.icon className="mt-0.5 size-5 shrink-0 text-foreground" aria-hidden="true" />
                 <span className="text-sm text-muted-foreground">{point.text}</span>
               </li>
             ))}

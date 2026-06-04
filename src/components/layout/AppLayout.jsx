@@ -12,9 +12,12 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
-import AppNav from './AppNav';
+import NotificationBell from '@/components/ui/NotificationBell';
+import Logo from '@/components/layout/Logo';
+import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 
 // Nav links per role. The "Dashboard" entry points at the role's actual dashboard
@@ -49,7 +52,7 @@ const LINKS_BY_ROLE = {
 // useNotifications here gives the app its single realtime subscription.
 function AppLayout() {
   const navigate = useNavigate();
-  const { isInitialized, isAuthenticated, role, logout } = useAuth();
+  const { isInitialized, isAuthenticated, role, email, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   if (!isInitialized) {
@@ -77,27 +80,54 @@ function AppLayout() {
   }
 
   const links = LINKS_BY_ROLE[role] ?? [];
+  const displayName = email ? email.split('@')[0] : 'Account';
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div
       className="min-h-screen bg-muted/40"
       style={{
-        backgroundImage: 'radial-gradient(rgba(11,110,110,0.05) 1px, transparent 1px)',
+        backgroundImage: 'radial-gradient(rgba(0,0,0,0.045) 1px, transparent 1px)',
         backgroundSize: '24px 24px',
       }}
     >
-      <AppNav
-        links={links}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        onNotificationClick={handleNotificationClick}
-        onMarkAllRead={markAllAsRead}
-        onSignOut={handleSignOut}
-      />
-      {/* Extra bottom padding on mobile so the fixed bottom nav never covers content. */}
-      <div className="pb-16 md:pb-0">
-        <Outlet />
+      <Sidebar links={links} roleLabel={role} onSignOut={handleSignOut} />
+
+      {/* Main column — offset for the fixed sidebar on desktop. */}
+      <div className="md:pl-64">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur sm:px-6 lg:px-8">
+          {/* Logo shows on mobile where the sidebar is hidden. */}
+          <NavLink to="/" className="md:hidden" aria-label="Locumii home">
+            <Logo />
+          </NavLink>
+          <div className="hidden md:block" />
+          <div className="flex items-center gap-3">
+            <NotificationBell
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onItemClick={handleNotificationClick}
+              onMarkAllRead={markAllAsRead}
+            />
+            <div className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 sm:border sm:border-border sm:pr-3">
+              <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                {initials}
+              </span>
+              <div className="hidden flex-col leading-tight sm:flex">
+                <span className="max-w-[10rem] truncate text-xs font-medium capitalize text-foreground">
+                  {displayName}
+                </span>
+                <span className="text-[10px] capitalize text-muted-foreground">{role}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Extra bottom padding on mobile so the fixed bottom nav never covers content. */}
+        <div className="pb-16 md:pb-0">
+          <Outlet />
+        </div>
       </div>
+
       <BottomNav links={links} />
     </div>
   );

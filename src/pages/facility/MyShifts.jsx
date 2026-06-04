@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import StatusBadge from '@/components/shifts/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
+import PageHeader from '@/components/layout/PageHeader';
 import { Briefcase } from 'lucide-react';
 import { useCancelShift, useFacilityShifts } from '@/hooks/useShifts';
 import { formatShiftRange } from '@/utils/dateTime';
@@ -45,15 +46,11 @@ function MyShifts() {
 
   return (
     <PageContainer>
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h1 className="text-xl font-medium text-foreground">Your shifts</h1>
-            <p className="text-sm text-muted-foreground">Manage bids on the shifts you’ve posted.</p>
-          </div>
-          <Button variant="outline" onClick={() => navigate('/facility/post-shift')}>
-            Post a shift
-          </Button>
-        </div>
+        <PageHeader
+          title="Your shifts"
+          subtitle="Manage bids on the shifts you’ve posted."
+          actions={<Button onClick={() => navigate('/facility/post-shift')}>Post a shift</Button>}
+        />
 
         <div className="flex flex-wrap gap-2">
           {STATUS_TABS.map((tab) => (

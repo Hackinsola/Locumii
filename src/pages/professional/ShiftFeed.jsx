@@ -4,6 +4,7 @@ import { SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import PageContainer from '@/components/layout/PageContainer';
+import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import ShiftCard from '@/components/shifts/ShiftCard';
 import { FCT_CITIES } from '@/constants/options';
@@ -36,10 +37,7 @@ function ShiftFeed() {
 
   return (
     <PageContainer>
-        <div>
-          <h1 className="text-xl font-medium text-foreground">Open shifts</h1>
-          <p className="text-sm text-muted-foreground">Browse and bid on available shifts.</p>
-        </div>
+        <PageHeader title="Open shifts" subtitle="Browse and bid on available shifts." />
 
         <div className="flex flex-col gap-2">
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">

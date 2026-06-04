@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Briefcase, CheckCircle2, Plus, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import VerifiedBadge from '@/components/profile/VerifiedBadge';
+import DashboardHero from '@/components/dashboard/DashboardHero';
 import StatCard from '@/components/dashboard/StatCard';
+import SectionLabel from '@/components/ui/SectionLabel';
 import NoticeBanner from '@/components/dashboard/NoticeBanner';
 import CTAButton from '@/components/dashboard/CTAButton';
 import RatingPromptBanner from '@/components/ratings/RatingPromptBanner';
@@ -29,15 +30,20 @@ function Dashboard() {
 
   return (
     <PageContainer>
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold text-foreground">
-              {profile?.facility_name ?? 'Your facility'}
-            </h1>
-            <VerifiedBadge verified={profile?.is_verified} pending={!profile?.is_verified} />
-          </div>
-          <p className="text-sm text-muted-foreground">Your shifts and hiring at a glance.</p>
-        </div>
+        <DashboardHero
+          badge="Facility"
+          title={`Welcome, ${profile?.facility_name ?? 'your facility'}`}
+          subtitle="Post shifts, review verified bids, and manage your hiring — all in one place."
+          action={
+            <Button
+              className="bg-white text-primary hover:bg-white/90"
+              onClick={() => navigate('/facility/post-shift')}
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              Post a shift
+            </Button>
+          }
+        />
 
         {pending.length > 0 && <RatingPromptBanner pending={pending} onRefetch={refetchPending} />}
 
@@ -58,7 +64,7 @@ function Dashboard() {
 
         {shiftsNeedingAction.length > 0 && (
           <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-foreground">Needs your attention</h2>
+            <SectionLabel>Needs your attention</SectionLabel>
             {shiftsNeedingAction.map((shift) => (
               <Card key={shift.id} className="border-l-4 border-l-primary">
                 <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
@@ -83,8 +89,8 @@ function Dashboard() {
         <CTAButton label="Post a shift" to="/facility/post-shift" icon={Plus} />
 
         <Card>
-          <CardContent className="flex flex-col gap-1 p-4">
-            <h2 className="mb-1 text-sm font-medium text-foreground">Recent shifts</h2>
+          <CardContent className="flex flex-col gap-1">
+            <SectionLabel className="mb-2">Recent shifts</SectionLabel>
             {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
             {!loading && recentShifts.length === 0 && (
               <p className="text-sm text-muted-foreground">You haven’t posted any shifts yet.</p>

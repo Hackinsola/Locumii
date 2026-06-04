@@ -14,6 +14,7 @@ import { formatNaira } from '@/utils/money';
 import { formatDate } from '@/utils/dateTime';
 import { cn } from '@/lib/utils';
 import PageContainer from '@/components/layout/PageContainer';
+import PageHeader from '@/components/layout/PageHeader';
 
 const selectClasses =
   'h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
@@ -120,10 +121,7 @@ function Earnings() {
 
   return (
     <PageContainer>
-        <div>
-          <h1 className="text-xl font-medium text-foreground">Earnings</h1>
-          <p className="text-sm text-muted-foreground">Your payout account and earnings.</p>
-        </div>
+        <PageHeader title="Earnings" subtitle="Your payout account and earnings." />
 
         <div className="grid grid-cols-3 gap-3">
           <StatCard

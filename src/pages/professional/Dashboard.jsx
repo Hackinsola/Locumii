@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarClock, Gavel, Search, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import VerifiedBadge from '@/components/profile/VerifiedBadge';
+import DashboardHero from '@/components/dashboard/DashboardHero';
 import StatCard from '@/components/dashboard/StatCard';
+import SectionLabel from '@/components/ui/SectionLabel';
 import UpcomingShiftCard from '@/components/dashboard/UpcomingShiftCard';
 import NoticeBanner from '@/components/dashboard/NoticeBanner';
 import CTAButton from '@/components/dashboard/CTAButton';
@@ -68,15 +70,20 @@ function Dashboard() {
 
   return (
     <PageContainer>
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold text-foreground">
-              Hello{profile?.full_name ? `, ${profile.full_name}` : ''}
-            </h1>
-            <VerifiedBadge verified={profile?.is_verified} pending={!profile?.is_verified} />
-          </div>
-          <p className="text-sm text-muted-foreground">Your locum work at a glance.</p>
-        </div>
+        <DashboardHero
+          badge="Professional"
+          title={`Welcome back${profile?.full_name ? `, ${profile.full_name}` : ''}`}
+          subtitle="Browse open shifts, track your bids, and watch your earnings grow — all in one place."
+          action={
+            <Button
+              className="bg-white text-primary hover:bg-white/90"
+              onClick={() => navigate('/professional/shifts')}
+            >
+              <Search className="size-4" aria-hidden="true" />
+              Find shifts
+            </Button>
+          }
+        />
 
         {pending.length > 0 && <RatingPromptBanner pending={pending} onRefetch={refetchPending} />}
 
@@ -101,7 +108,7 @@ function Dashboard() {
 
         {nextShift && (
           <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-foreground">Next shift</h2>
+            <SectionLabel>Next shift</SectionLabel>
             <UpcomingShiftCard shift={one(nextShift.shifts)} facility={one(nextFacility)} />
           </div>
         )}
@@ -109,8 +116,8 @@ function Dashboard() {
         <CTAButton label="Browse shifts" to="/professional/shifts" icon={Search} />
 
         <Card>
-          <CardContent className="flex flex-col gap-1 p-4">
-            <h2 className="mb-1 text-sm font-medium text-foreground">Recent bids</h2>
+          <CardContent className="flex flex-col gap-1">
+            <SectionLabel className="mb-2">Recent bids</SectionLabel>
             {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
             {!loading && recentBids.length === 0 && (
               <p className="text-sm text-muted-foreground">

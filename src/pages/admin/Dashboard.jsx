@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Building2, FileClock, Users, Wallet } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import DashboardHero from '@/components/dashboard/DashboardHero';
 import PageContainer from '@/components/layout/PageContainer';
 import { useAdminDashboard } from '@/hooks/useAdmin';
 import { formatNaira } from '@/utils/money';
@@ -34,17 +35,18 @@ function Dashboard() {
 
   return (
     <PageContainer>
-        <div>
-          <h1 className="text-xl font-medium text-foreground">Admin dashboard</h1>
-          <p className="text-sm text-muted-foreground">Platform overview and review queues.</p>
-        </div>
+        <DashboardHero
+          badge="Admin"
+          title="Welcome back"
+          subtitle="Platform overview — review credentials, verify facilities, and manage users."
+        />
 
         {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
         {error && <p className="text-sm text-destructive">Could not load the dashboard.</p>}
 
         {!loading && !error && (
           <>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <StatCard
                 label="Pending credentials"
                 value={counts.pendingCredentials}

@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 // Reveals its children with a fade + slide-up the first time they scroll into view
 // (Clerk/ShiftKey-style section entrances). Falls back to visible immediately where
 // IntersectionObserver isn't available. `delay` (ms) staggers grouped items.
-function Reveal({ children, className, delay = 0, as: Tag = 'div' }) {
+function Reveal({ children, className, delay = 0, as: Tag = 'div', ...rest }) {
   const ref = useRef(null);
   const [shown, setShown] = useState(() => typeof IntersectionObserver === 'undefined');
 
@@ -29,6 +29,7 @@ function Reveal({ children, className, delay = 0, as: Tag = 'div' }) {
   return (
     <Tag
       ref={ref}
+      {...rest}
       style={{ transitionDelay: shown ? `${delay}ms` : '0ms' }}
       className={cn(
         'transition-all duration-700 ease-out motion-reduce:transition-none',

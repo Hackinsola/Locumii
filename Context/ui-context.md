@@ -25,13 +25,15 @@ The defining characteristics, extracted directly from the Clerk UI:
 
 ### Brand Tokens
 
-|Token Name                   |Hex      |Usage                                                               |
-|-----------------------------|---------|--------------------------------------------------------------------|
-|`--color-brand-primary`      |`#0B6E6E`|Primary buttons (light surface only), active nav, links, focus rings|
-|`--color-brand-primary-hover`|`#095A5A`|Hover on teal buttons (light surface only)                          |
-|`--color-brand-primary-light`|`#E6F4F4`|Teal button hover background, selected row tint                     |
-|`--color-brand-primary-muted`|`#4A9A9A`|Highlighted words in dark-panel hero headings only                  |
-|`--color-brand-accent`       |`#D4900A`|Naira amounts in earnings, bid-accepted badge, payout confirmation  |
+> **UPDATE (brand colour change):** the brand primary is now **BLACK `#111111`** — the original teal `#0B6E6E` has been **retired** at the user's request (replaced everywhere with black for a cohesive monochrome system). Every "teal" / `--color-brand-primary` reference elsewhere in this document now resolves to `#111111`. The amber accent is unchanged. The system is now **black primary + neutral greys + amber (money) accent + semantic status colours** only.
+
+|Token Name                   |Hex      |Usage                                                                |
+|-----------------------------|---------|---------------------------------------------------------------------|
+|`--color-brand-primary`      |`#111111`|Primary buttons, active nav, links, focus rings, dashboard hero card |
+|`--color-brand-primary-hover`|`#000000`|Hover on primary (black) buttons                                     |
+|`--color-brand-primary-light`|`#F4F4F5`|Primary-tint backgrounds, selected row/sidebar tint                  |
+|`--color-brand-primary-muted`|`#4B5563`|Neutral grey (formerly the dark-panel highlight)                     |
+|`--color-brand-accent`       |`#D4900A`|Naira amounts in earnings, payout confirmation (the one warm accent) |
 |`--color-brand-accent-hover` |`#B87A08`|Hover on amber elements                                             |
 |`--color-brand-accent-light` |`#FDF3DC`|Earnings card background (light surface)                            |
 

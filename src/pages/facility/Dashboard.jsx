@@ -36,7 +36,7 @@ function Dashboard() {
           subtitle="Post shifts, review verified bids, and manage your hiring — all in one place."
           action={
             <Button
-              className="bg-white text-primary hover:bg-white/90"
+              className="bg-foreground text-background hover:bg-foreground/90"
               onClick={() => navigate('/facility/post-shift')}
             >
               <Plus className="size-4" aria-hidden="true" />

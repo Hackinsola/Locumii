@@ -16,13 +16,14 @@ import StatusBadge from '@/components/shifts/StatusBadge';
 // Marketing landing — a SINGLE light surface the whole way down (datafa.st / Podia /
 // June / Uvodo style): floating pill nav, a centered hero with one highlighted word +
 // social proof, a browser-framed product preview, value columns, how-it-works, a
-// contained teal CTA card, and a light footer. Teal is the one accent color.
+// contained CTA card, and a light footer. Matte-black system with Premium Green as a
+// subtle signature accent (eyebrow pill, the highlighted word, step markers).
 
 const AVATARS = [
-  'linear-gradient(135deg,#111111,#4b5563)',
+  'linear-gradient(135deg,#1a1a1a,#4b5563)',
+  'linear-gradient(135deg,#0a3d2d,#16604a)',
   'linear-gradient(135deg,#D4900A,#E8B24A)',
-  'linear-gradient(135deg,#1f2937,#6b7280)',
-  'linear-gradient(135deg,#374151,#111111)',
+  'linear-gradient(135deg,#374151,#1a1a1a)',
   'linear-gradient(135deg,#52525b,#18181b)',
 ];
 
@@ -41,7 +42,7 @@ function ValueCard({ icon: Icon, title, children }) {
 function Step({ number, title, children }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="flex size-9 items-center justify-center rounded-full bg-primary/10 font-mono text-sm font-bold text-primary">
+      <span className="flex size-9 items-center justify-center rounded-full bg-brand-green/10 font-mono text-sm font-bold text-brand-green">
         {number}
       </span>
       <h3 className="mt-1 text-lg font-semibold text-foreground">{title}</h3>
@@ -121,11 +122,12 @@ function Landing() {
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-4xl px-4 pb-10 pt-16 text-center sm:pt-20">
         <Reveal>
-          <span className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-xs font-semibold text-brand-green">
+            <span className="size-1.5 rounded-full bg-brand-green" aria-hidden="true" />
             Locum staffing · Abuja FCT
           </span>
           <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
-            Healthcare shifts, staffed and <span className="text-primary">paid</span> in one place.
+            Healthcare shifts, staffed and <span className="text-brand-green">paid</span> in one place.
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             Locumii connects verified Nigerian doctors, nurses, pharmacists and lab scientists with
@@ -177,12 +179,12 @@ function Landing() {
             <div className="flex flex-col gap-4 bg-secondary/60 p-4 text-left sm:p-5">
               <div className="flex items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-primary-foreground">
                 <div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/70">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-primary-foreground/70">
                     Professional
                   </span>
                   <p className="text-sm font-bold sm:text-base">Welcome back, Amara</p>
                 </div>
-                <span className="hidden rounded-md bg-white/15 px-3 py-1.5 text-xs font-semibold sm:block">
+                <span className="hidden rounded-md bg-foreground/10 px-3 py-1.5 text-xs font-semibold sm:block">
                   Find shifts
                 </span>
               </div>
@@ -309,7 +311,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* ── Contained teal CTA card ───────────────────────────────────── */}
+      {/* ── Contained CTA card ────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
         <Reveal className="overflow-hidden rounded-3xl bg-primary px-6 py-14 text-center text-primary-foreground sm:py-16">
           <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
@@ -320,7 +322,7 @@ function Landing() {
             verified, accountable marketplace.
           </p>
           <div className="mt-7 flex justify-center">
-            <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
+            <Button asChild size="lg" className="bg-foreground text-background hover:bg-foreground/90">
               <Link to="/auth/register">
                 Create your account
                 <ArrowRight className="size-4" aria-hidden="true" />

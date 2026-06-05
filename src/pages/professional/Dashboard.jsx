@@ -76,7 +76,7 @@ function Dashboard() {
           subtitle="Browse open shifts, track your bids, and watch your earnings grow — all in one place."
           action={
             <Button
-              className="bg-white text-primary hover:bg-white/90"
+              className="bg-foreground text-background hover:bg-foreground/90"
               onClick={() => navigate('/professional/shifts')}
             >
               <Search className="size-4" aria-hidden="true" />

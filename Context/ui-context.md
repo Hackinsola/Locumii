@@ -25,13 +25,16 @@ The defining characteristics, extracted directly from the Clerk UI:
 
 ### Brand Tokens
 
-> **UPDATE (brand colour change):** the brand primary is now **BLACK `#111111`** — the original teal `#0B6E6E` has been **retired** at the user's request (replaced everywhere with black for a cohesive monochrome system). Every "teal" / `--color-brand-primary` reference elsewhere in this document now resolves to `#111111`. The amber accent is unchanged. The system is now **black primary + neutral greys + amber (money) accent + semantic status colours** only.
+> **UPDATE (official brand palette — vibrant green primary):** the brand is three colours — **Premium White `#FFFFFF`**, **Matte Black `#1A1A1A`**, and a **vibrant mid-tone green `#3ECF8E`** (HSL 154°/71%/53% — Supabase-style; supersedes the brand-sheet's deep `#0A3D2D`, which read as too dark/black). The original teal `#0B6E6E` is **retired**. **Green is the PRIMARY** (`--primary`): buttons, active nav, links, focus rings, the dashboard hero/CTA surfaces, stat-card icon chips, the logo mark. **Because `#3ECF8E` is light/mid-tone, text ON green is dark** — `--primary-foreground` = Matte Black `#1A1A1A` (the Supabase pattern: vibrant green fill + near-black label). **Matte Black is also the body/heading text** (`--foreground`); CTAs sitting on a green surface use a black button (`bg-foreground text-background`) for contrast. The amber accent (money) is unchanged. Every legacy "teal" / `--color-brand-primary` reference now resolves through `--primary` = green. The system is **vibrant green primary (with dark text on it) + Matte Black text + neutral greys + amber (money) accent + semantic status colours**. (The logo mark uses `--logo-mark` = the brand green on both light and dark surfaces.)
 
 |Token Name                   |Hex      |Usage                                                                |
 |-----------------------------|---------|---------------------------------------------------------------------|
-|`--color-brand-primary`      |`#111111`|Primary buttons, active nav, links, focus rings, dashboard hero card |
-|`--color-brand-primary-hover`|`#000000`|Hover on primary (black) buttons                                     |
-|`--color-brand-primary-light`|`#F4F4F5`|Primary-tint backgrounds, selected row/sidebar tint                  |
+|`--primary` (= brand green)  |`#3ECF8E`|Primary buttons, active nav, links, focus rings, hero/CTA surfaces, icon chips |
+|`--primary-foreground`       |`#1A1A1A`|**Dark** text/label on green fills (green is too light for white)    |
+|`--color-brand-green`        |`#3ECF8E`|Same green, exposed as a `brand-green` utility for explicit accents  |
+|`--color-brand-green-hover`  |`#2FB878`|Hover on primary (green) buttons / green elements                    |
+|`--color-brand-green-light`  |`#E7FAF1`|Green-tint backgrounds (used sparingly)                              |
+|`--color-brand-primary`      |`#1A1A1A`|Matte Black — text/foreground; available as `brand-primary` utility  |
 |`--color-brand-primary-muted`|`#4B5563`|Neutral grey (formerly the dark-panel highlight)                     |
 |`--color-brand-accent`       |`#D4900A`|Naira amounts in earnings, payout confirmation (the one warm accent) |
 |`--color-brand-accent-hover` |`#B87A08`|Hover on amber elements                                             |

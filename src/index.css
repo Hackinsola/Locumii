@@ -9,10 +9,15 @@
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
-    /* Brand teal — exposed as a utility so it stays teal on dark surfaces too
-       (the .dark block remaps --primary to white for white-on-black buttons). */
+    /* Brand primary (Matte Black) — exposed as a utility so it stays black on dark
+       surfaces too (the .dark block remaps --primary to white for white-on-black buttons). */
     --color-brand-primary: var(--brand-primary);
     --color-brand-primary-muted: var(--brand-primary-muted);
+    /* Premium Green — the brand's signature colour, used subtly as an accent
+       (eyebrow pills, highlighted words, step markers). Pairs with a light tint. */
+    --color-brand-green: var(--brand-green);
+    --color-brand-green-hover: var(--brand-green-hover);
+    --color-brand-green-light: var(--brand-green-light);
     /* Brand amber — reserved for Naira amounts / payout moments (ui-context.md). */
     --color-brand-accent: var(--brand-accent);
     --color-brand-accent-hover: var(--brand-accent-hover);
@@ -69,47 +74,56 @@
     /* Locumii brand — Clerk-accurate light surface (Context/ui-context.md).
        Pure neutral greys (R=G=B), teal reserved for interactive/brand only,
        amber reserved for Naira amounts. */
-    /* Brand primary is BLACK (teal retired). One strong accent, monochrome system. */
-    --brand-primary: #111111;
+    /* Brand palette — Premium White (#FFFFFF), Matte Black (#1A1A1A) primary,
+       Premium Green (#0A3D2D) as the signature accent used subtly. */
+    --brand-primary: #1a1a1a;
     --brand-primary-hover: #000000;
     --brand-primary-light: #f4f4f5;
     --brand-primary-muted: #4b5563;
+    --brand-green: #3ecf8e;
+    --brand-green-hover: #2fb878;
+    --brand-green-light: #e7faf1;
+    /* Logo mark fill — deep green on light surfaces; the .dark block brightens it
+       so the bars stay visible on the near-black auth panel. */
+    --logo-mark: var(--brand-green);
     --brand-accent: #d4900a;
     --brand-accent-hover: #b87a08;
     --brand-accent-light: #fdf3dc;
 
     --background: #ffffff;
-    --foreground: #111111;
+    --foreground: #1a1a1a;
     --card: #ffffff;
-    --card-foreground: #111111;
+    --card-foreground: #1a1a1a;
     --popover: #ffffff;
-    --popover-foreground: #111111;
-    --primary: var(--brand-primary);
-    --primary-foreground: #ffffff;
+    --popover-foreground: #1a1a1a;
+    /* Premium Green is the PRIMARY brand colour — buttons, active nav, links,
+       focus rings, hero/CTA surfaces. Matte Black is reserved for text (foreground). */
+    --primary: var(--brand-green);
+    --primary-foreground: #1a1a1a;
     --secondary: #f4f4f5;
-    --secondary-foreground: #111111;
+    --secondary-foreground: #1a1a1a;
     --muted: #fafafa;
     --muted-foreground: #4b5563;
     --accent: #f4f4f5;
-    --accent-foreground: #111111;
+    --accent-foreground: #1a1a1a;
     --destructive: #dc2626;
     --border: #e5e5e5;
     --input: #d1d5db;
-    --ring: var(--brand-primary);
-    --chart-1: #111111;
-    --chart-2: #4b5563;
+    --ring: var(--brand-green);
+    --chart-1: var(--brand-green);
+    --chart-2: #1a1a1a;
     --chart-3: #d4900a;
-    --chart-4: #6b7280;
+    --chart-4: #4b5563;
     --chart-5: #9ca3af;
     --radius: 0.625rem;
     --sidebar: #fafafa;
-    --sidebar-foreground: #111111;
-    --sidebar-primary: var(--brand-primary);
-    --sidebar-primary-foreground: #ffffff;
+    --sidebar-foreground: #1a1a1a;
+    --sidebar-primary: var(--brand-green);
+    --sidebar-primary-foreground: #1a1a1a;
     --sidebar-accent: #f4f4f5;
-    --sidebar-accent-foreground: #111111;
+    --sidebar-accent-foreground: #1a1a1a;
     --sidebar-border: #e5e5e5;
-    --sidebar-ring: var(--brand-primary);
+    --sidebar-ring: var(--brand-green);
 }
 
 .dark {
@@ -117,12 +131,12 @@
        white-on-black; teal stays for links/active/focus. Not toggled today. */
     --background: #0a0a0a;
     --foreground: #ffffff;
-    --card: #111111;
+    --card: #1a1a1a;
     --card-foreground: #ffffff;
-    --popover: #111111;
+    --popover: #1a1a1a;
     --popover-foreground: #ffffff;
     --primary: #ffffff;
-    --primary-foreground: #111111;
+    --primary-foreground: #1a1a1a;
     --secondary: #1a1a1a;
     --secondary-foreground: #ffffff;
     --muted: #1a1a1a;
@@ -141,11 +155,13 @@
     --sidebar: #0d0d0d;
     --sidebar-foreground: #ffffff;
     --sidebar-primary: #ffffff;
-    --sidebar-primary-foreground: #111111;
+    --sidebar-primary-foreground: #1a1a1a;
     --sidebar-accent: #1a1a1a;
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: #1f1f1f;
     --sidebar-ring: #a1a1aa;
+    /* Vibrant green reads well on near-black, so the mark keeps the brand green. */
+    --logo-mark: var(--brand-green);
 }
 
 @layer base {

@@ -105,15 +105,12 @@ function Landing() {
             ))}
           </nav>
           <div className="flex items-center gap-1">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/auth/login">Sign in</Link>
-            </Button>
             <Button
               asChild
               size="sm"
               className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <Link to="/waitlist">Get started</Link>
+              <Link to="/waitlist">Join the waitlist</Link>
             </Button>
           </div>
         </div>
@@ -140,12 +137,9 @@ function Landing() {
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <Link to="/waitlist">
-                Get started free
+                Join the waitlist
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/auth/login">I already have an account</Link>
             </Button>
           </div>
           <div className="mt-7 flex items-center justify-center gap-3">
@@ -337,11 +331,8 @@ function Landing() {
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
           <Logo />
           <div className="flex items-center gap-5 text-sm text-muted-foreground">
-            <Link to="/auth/login" className="hover:text-foreground">
-              Sign in
-            </Link>
             <Link to="/waitlist" className="hover:text-foreground">
-              Get started
+              Join the waitlist
             </Link>
           </div>
           <span className="text-xs text-muted-foreground">

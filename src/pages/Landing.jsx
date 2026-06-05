@@ -29,8 +29,8 @@ const AVATARS = [
 
 function ValueCard({ icon: Icon, title, children }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+    <div className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-5 transition duration-200 hover:-translate-y-0.5 hover:border-brand-green/30 hover:shadow-md">
+      <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform duration-200 group-hover:scale-110">
         <Icon className="size-5" aria-hidden="true" />
       </span>
       <h3 className="mt-1 text-base font-semibold text-foreground">{title}</h3>
@@ -82,10 +82,10 @@ const MOCK_SHIFTS = [
 
 function Landing() {
   return (
-    <div className="min-h-screen scroll-smooth bg-secondary text-foreground">
+    <div className="min-h-screen overflow-x-clip scroll-smooth bg-secondary text-foreground">
       {/* ── Floating pill nav ─────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 px-4 pt-4">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between rounded-full border border-border bg-card/80 pl-5 pr-2 backdrop-blur">
+        <div className="mx-auto flex h-14 w-full max-w-5xl animate-in items-center justify-between rounded-full border border-border bg-card/80 pl-5 pr-2 backdrop-blur duration-700 fade-in slide-in-from-top-2">
           <Link to="/" aria-label="Locumii home">
             <Logo />
           </Link>
@@ -117,51 +117,85 @@ function Landing() {
       </header>
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-4xl px-4 pb-10 pt-16 text-center sm:pt-20">
-        <Reveal>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-xs font-semibold text-brand-green">
-            <span className="size-1.5 rounded-full bg-brand-green" aria-hidden="true" />
-            Locum staffing · Abuja FCT
+      <section className="relative isolate mx-auto w-full max-w-4xl px-4 pb-10 pt-16 text-center sm:pt-20">
+        {/* Ambient breathing glow — atmosphere/depth behind the hero. */}
+        <div
+          aria-hidden="true"
+          className="animate-breathe pointer-events-none absolute left-1/2 top-[-5rem] -z-10 h-[30rem] w-[42rem] max-w-[92vw] -translate-x-1/2 rounded-full blur-3xl"
+          style={{
+            background:
+              'radial-gradient(closest-side, color-mix(in oklab, var(--brand-green) 32%, transparent), transparent)',
+          }}
+        />
+
+        <Reveal
+          as="span"
+          className="inline-flex items-center gap-2 rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-xs font-semibold text-brand-green"
+        >
+          {/* Live pulse — signals an active, launching marketplace. */}
+          <span className="relative flex size-1.5">
+            <span
+              className="animate-pulse-ring absolute inline-flex size-full rounded-full bg-brand-green"
+              aria-hidden="true"
+            />
+            <span className="relative inline-flex size-1.5 rounded-full bg-brand-green" />
           </span>
-          <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
-            Healthcare shifts, staffed and <span className="text-brand-green">paid</span> in one place.
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Locumii connects verified Nigerian doctors, nurses, pharmacists and lab scientists with
-            the clinics that need them — credentials, escrow payments and ratings built in.
-          </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Button
-              asChild
-              size="lg"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Link to="/waitlist">
-                Join the waitlist
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </Link>
-            </Button>
-          </div>
-          <div className="mt-7 flex items-center justify-center gap-3">
-            <div className="flex -space-x-2">
-              {AVATARS.map((bg, index) => (
-                <span
-                  key={index}
-                  className="size-7 rounded-full border-2 border-secondary"
-                  style={{ background: bg }}
-                  aria-hidden="true"
-                />
-              ))}
-            </div>
-            <span className="text-sm text-muted-foreground">
-              Built for verified clinics &amp; locums across the FCT
-            </span>
-          </div>
+          Locum staffing · Abuja FCT
         </Reveal>
 
-        {/* Product preview — a browser-framed snapshot of the real app. */}
-        <Reveal delay={140} className="mt-14">
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-foreground/10">
+        <Reveal
+          as="h1"
+          delay={80}
+          className="mx-auto mt-5 max-w-3xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] sm:text-5xl lg:text-6xl"
+        >
+          Healthcare shifts, staffed and{' '}
+          <span className="word-accent text-brand-green">paid</span> in one place.
+        </Reveal>
+
+        <Reveal
+          as="p"
+          delay={160}
+          className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+        >
+          Locumii connects verified Nigerian doctors, nurses, pharmacists and lab scientists with
+          the clinics that need them — credentials, escrow payments and ratings built in.
+        </Reveal>
+
+        <Reveal delay={240} className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          <Button
+            asChild
+            size="lg"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Link to="/waitlist">
+              Join the waitlist
+              <ArrowRight
+                className="size-4 transition-transform duration-200 group-hover/button:translate-x-0.5"
+                aria-hidden="true"
+              />
+            </Link>
+          </Button>
+        </Reveal>
+
+        <Reveal delay={320} className="mt-7 flex items-center justify-center gap-3">
+          <div className="flex -space-x-2">
+            {AVATARS.map((bg, index) => (
+              <span
+                key={index}
+                className="size-7 rounded-full border-2 border-secondary"
+                style={{ background: bg }}
+                aria-hidden="true"
+              />
+            ))}
+          </div>
+          <span className="text-sm text-muted-foreground">
+            Built for verified clinics &amp; locums across the FCT
+          </span>
+        </Reveal>
+
+        {/* Product preview — a browser-framed snapshot of the real app, gently floating. */}
+        <Reveal delay={400} className="mt-14">
+          <div className="animate-float-y mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-foreground/10">
             <div className="flex items-center gap-2 border-b border-border bg-card px-4 py-3">
               <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
               <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
@@ -319,7 +353,10 @@ function Landing() {
             <Button asChild size="lg" className="bg-foreground text-background hover:bg-foreground/90">
               <Link to="/waitlist">
                 Join the waitlist
-                <ArrowRight className="size-4" aria-hidden="true" />
+                <ArrowRight
+                  className="size-4 transition-transform duration-200 group-hover/button:translate-x-0.5"
+                  aria-hidden="true"
+                />
               </Link>
             </Button>
           </div>

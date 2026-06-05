@@ -175,3 +175,50 @@
     @apply font-sans;
     }
 }
+
+/* ── Brand motion ──────────────────────────────────────────────────────────
+   Refined, low-frequency animations for the marketing surface. High-impact
+   moments only (ambient depth, a live signal, a floating product shot, an
+   accent underline that draws in). All silenced under prefers-reduced-motion. */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.45; }
+  50%      { transform: scale(1.15); opacity: 0.75; }
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 0.65; }
+  70%  { transform: scale(2.6); opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes draw-x {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.animate-breathe   { animation: breathe 8s ease-in-out infinite; }
+.animate-float-y   { animation: float-y 7s ease-in-out infinite; }
+.animate-pulse-ring { animation: pulse-ring 2.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+/* Accent word: a green underline bar that draws left→right shortly after load. */
+.word-accent { position: relative; white-space: nowrap; }
+.word-accent::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0.04em;
+  height: 0.085em;
+  border-radius: 999px;
+  background: var(--brand-green);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: draw-x 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-breathe,
+  .animate-float-y,
+  .animate-pulse-ring { animation: none; }
+  .word-accent::after { animation: none; transform: scaleX(1); }
+}

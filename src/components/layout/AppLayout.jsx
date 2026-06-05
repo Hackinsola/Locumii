@@ -3,6 +3,7 @@ import {
   Briefcase,
   Building2,
   CalendarCheck,
+  ClipboardList,
   FileCheck,
   LayoutDashboard,
   Plus,
@@ -43,6 +44,7 @@ const LINKS_BY_ROLE = {
     { to: '/admin/credentials', label: 'Credentials', icon: FileCheck },
     { to: '/admin/facilities', label: 'Facilities', icon: Building2 },
     { to: '/admin/users', label: 'Users', icon: Users },
+    { to: '/admin/waitlist', label: 'Waitlist', icon: ClipboardList },
   ],
 };
 
@@ -108,7 +110,11 @@ function AppLayout() {
               onItemClick={handleNotificationClick}
               onMarkAllRead={markAllAsRead}
             />
-            <div className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 sm:border sm:border-border sm:pr-3">
+            <NavLink
+              to="/settings"
+              aria-label="Account settings"
+              className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 transition-colors hover:bg-muted sm:border sm:border-border sm:pr-3"
+            >
               <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                 {initials}
               </span>
@@ -118,7 +124,7 @@ function AppLayout() {
                 </span>
                 <span className="text-[10px] capitalize text-muted-foreground">{role}</span>
               </div>
-            </div>
+            </NavLink>
           </div>
         </header>
 

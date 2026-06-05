@@ -70,6 +70,41 @@ export function useAdminDashboard() {
   return { counts, loading, error, refetch: fetchCounts };
 }
 
+// Pre-launch waitlist signups (admin-only via the waitlist_select_admin RLS policy).
+// Newest first; one generous page since the list is small pre-launch. Backs the admin
+// Waitlist page (view + CSV export).
+export function useWaitlistSignups() {
+  const [signups, setSignups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchSignups = useCallback(async () => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('waitlist')
+        .select('id, email, full_name, role, created_at')
+        .order('created_at', { ascending: false })
+        .range(0, 999);
+      if (fetchError) {
+        throw fetchError;
+      }
+      setSignups(data ?? []);
+      setError(null);
+    } catch (caught) {
+      setError(caught);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSignups();
+  }, [fetchSignups]);
+
+  return { signups, loading, error, refetch: fetchSignups };
+}
+
 // Facilities awaiting verification (is_verified = false). Admin reads all rows via
 // the facility_profiles select policy. One page, oldest first.
 export function usePendingFacilities() {

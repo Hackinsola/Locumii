@@ -14,6 +14,8 @@ import AdminDashboard from '@/pages/admin/Dashboard'
 import CredentialQueue from '@/pages/admin/CredentialQueue'
 import FacilityQueue from '@/pages/admin/FacilityQueue'
 import UserManager from '@/pages/admin/UserManager'
+import AdminWaitlist from '@/pages/admin/Waitlist'
+import Settings from '@/pages/Settings'
 import ManageBids from '@/pages/facility/ManageBids'
 import MyShifts from '@/pages/facility/MyShifts'
 import FacilityOnboarding from '@/pages/facility/Onboarding'
@@ -309,6 +311,23 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <UserManager />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/waitlist"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminWaitlist />
+            </ProtectedRoute>
+          }
+        />
+        {/* Account settings — any signed-in user (no role restriction). */}
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           }
         />

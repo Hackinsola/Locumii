@@ -149,7 +149,7 @@ function Landing() {
           className="mx-auto mt-5 max-w-3xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] sm:text-5xl lg:text-6xl"
         >
           Healthcare shifts, staffed and{' '}
-          <span className="word-accent text-brand-green">paid</span> in one place.
+          <span className="text-brand-green">paid</span> in one place.
         </Reveal>
 
         <Reveal

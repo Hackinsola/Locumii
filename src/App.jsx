@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth, useAuthListener } from '@/hooks/useAuth'
 import AppLayout from '@/components/layout/AppLayout'
 import Landing from '@/pages/Landing'
+import Waitlist from '@/pages/Waitlist'
 import ProfessionalDashboard from '@/pages/professional/Dashboard'
 import FacilityDashboard from '@/pages/facility/Dashboard'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
@@ -95,6 +96,17 @@ function App() {
       <Routes>
         {/* Public marketing landing (signed-out) / dashboard redirect (signed-in). */}
         <Route path="/" element={<RootRoute />} />
+
+        {/* Pre-launch waitlist capture — where the landing's "Get started" points until
+            the real account signup goes live. Signed-out only. */}
+        <Route
+          path="/waitlist"
+          element={
+            <PublicOnlyRoute>
+              <Waitlist />
+            </PublicOnlyRoute>
+          }
+        />
 
         {/* Auth pages — no app chrome, signed-out only. */}
         <Route

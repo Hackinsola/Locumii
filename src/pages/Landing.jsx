@@ -113,7 +113,7 @@ function Landing() {
               size="sm"
               className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <Link to="/auth/register">Get started</Link>
+              <Link to="/waitlist">Get started</Link>
             </Button>
           </div>
         </div>
@@ -139,7 +139,7 @@ function Landing() {
               size="lg"
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <Link to="/auth/register">
+              <Link to="/waitlist">
                 Get started free
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
@@ -323,8 +323,8 @@ function Landing() {
           </p>
           <div className="mt-7 flex justify-center">
             <Button asChild size="lg" className="bg-foreground text-background hover:bg-foreground/90">
-              <Link to="/auth/register">
-                Create your account
+              <Link to="/waitlist">
+                Join the waitlist
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -340,7 +340,7 @@ function Landing() {
             <Link to="/auth/login" className="hover:text-foreground">
               Sign in
             </Link>
-            <Link to="/auth/register" className="hover:text-foreground">
+            <Link to="/waitlist" className="hover:text-foreground">
               Get started
             </Link>
           </div>

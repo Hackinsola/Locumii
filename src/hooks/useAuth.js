@@ -202,6 +202,27 @@ export function useAuth() {
     }
   }, []);
 
+  // Start an email change for the signed-in user. With Supabase's secure email
+  // change, this sends a confirmation link (to the new address, and to the current
+  // one) — the email only updates once the link is followed. The confirmation link
+  // points at the Auth "Site URL", so that must be set to the live domain first.
+  const updateEmail = useCallback(async (newEmail) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ email: newEmail });
+      if (updateError) {
+        throw updateError;
+      }
+      return { error: null };
+    } catch (caught) {
+      setError(caught);
+      return { error: caught };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     userId,
     email,
@@ -215,6 +236,7 @@ export function useAuth() {
     logout,
     resetPassword,
     updatePassword,
+    updateEmail,
     loading,
     error,
   };

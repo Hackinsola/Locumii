@@ -6,6 +6,7 @@ import {
   ClipboardList,
   FileCheck,
   LayoutDashboard,
+  LogOut,
   Plus,
   Receipt,
   Search,
@@ -125,6 +126,15 @@ function AppLayout() {
                 <span className="text-[10px] capitalize text-muted-foreground">{role}</span>
               </div>
             </NavLink>
+            {/* Sign out — mobile only (the desktop sidebar carries its own). */}
+            <button
+              type="button"
+              onClick={handleSignOut}
+              aria-label="Sign out"
+              className="flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden"
+            >
+              <LogOut className="size-5" aria-hidden="true" />
+            </button>
           </div>
         </header>
 

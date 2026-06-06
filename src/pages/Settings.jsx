@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import PageContainer from '@/components/layout/PageContainer';
@@ -13,7 +14,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // supabase.auth.updateUser on the live session). Each section tracks its own busy
 // state so submitting one doesn't disable the other.
 function Settings() {
-  const { email, updateEmail, updatePassword } = useAuth();
+  const navigate = useNavigate();
+  const { email, updateEmail, updatePassword, logout } = useAuth();
+
+  async function handleSignOut() {
+    const { error } = await logout();
+    if (!error) {
+      navigate('/auth/login');
+    }
+  }
 
   // Change email.
   const [newEmail, setNewEmail] = useState('');
@@ -173,6 +182,15 @@ function Settings() {
             {pwBusy ? 'Updating…' : 'Update password'}
           </Button>
         </form>
+      </div>
+
+      {/* Session */}
+      <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+        <h2 className="text-sm font-semibold text-foreground">Session</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">Sign out of Locumii on this device.</p>
+        <Button variant="outline" className="mt-4 w-fit" onClick={handleSignOut}>
+          Sign out
+        </Button>
       </div>
     </PageContainer>
   );

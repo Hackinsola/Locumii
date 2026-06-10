@@ -1,36 +1,56 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth, useAuthListener } from '@/hooks/useAuth'
 import AppLayout from '@/components/layout/AppLayout'
-import Landing from '@/pages/Landing'
-import Waitlist from '@/pages/Waitlist'
-import ProfessionalDashboard from '@/pages/professional/Dashboard'
-import FacilityDashboard from '@/pages/facility/Dashboard'
-import ForgotPassword from '@/pages/auth/ForgotPassword'
-import Login from '@/pages/auth/Login'
-import Register from '@/pages/auth/Register'
-import Reset from '@/pages/auth/Reset'
-import Suspended from '@/pages/auth/Suspended'
-import AdminDashboard from '@/pages/admin/Dashboard'
-import CredentialQueue from '@/pages/admin/CredentialQueue'
-import FacilityQueue from '@/pages/admin/FacilityQueue'
-import UserManager from '@/pages/admin/UserManager'
-import AdminWaitlist from '@/pages/admin/Waitlist'
-import Settings from '@/pages/Settings'
-import ManageBids from '@/pages/facility/ManageBids'
-import MyShifts from '@/pages/facility/MyShifts'
-import FacilityOnboarding from '@/pages/facility/Onboarding'
-import PostShift from '@/pages/facility/PostShift'
-import FacilityProfile from '@/pages/facility/FacilityProfile'
-import FacilityMyProfile from '@/pages/facility/MyProfile'
-import FacilityTransactions from '@/pages/facility/Transactions'
-import DocumentUpload from '@/pages/professional/DocumentUpload'
-import Earnings from '@/pages/professional/Earnings'
-import MyProfile from '@/pages/professional/MyProfile'
-import ProfessionalMyShifts from '@/pages/professional/MyShifts'
-import Onboarding from '@/pages/professional/Onboarding'
-import ProfessionalProfile from '@/pages/professional/ProfessionalProfile'
-import ShiftDetail from '@/pages/professional/ShiftDetail'
-import ShiftFeed from '@/pages/professional/ShiftFeed'
+
+// Pages are lazy-loaded so each route ships as its own chunk: a signed-out visitor
+// on the landing page never downloads the admin/facility/professional bundles. The
+// shared chrome (AppLayout) stays eager so nav renders instantly while a page chunk
+// loads behind the Suspense fallback below.
+const Landing = lazy(() => import('@/pages/Landing'))
+const Waitlist = lazy(() => import('@/pages/Waitlist'))
+const ProfessionalDashboard = lazy(() => import('@/pages/professional/Dashboard'))
+const FacilityDashboard = lazy(() => import('@/pages/facility/Dashboard'))
+const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'))
+const Login = lazy(() => import('@/pages/auth/Login'))
+const Register = lazy(() => import('@/pages/auth/Register'))
+const Reset = lazy(() => import('@/pages/auth/Reset'))
+const Suspended = lazy(() => import('@/pages/auth/Suspended'))
+const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'))
+const CredentialQueue = lazy(() => import('@/pages/admin/CredentialQueue'))
+const FacilityQueue = lazy(() => import('@/pages/admin/FacilityQueue'))
+const UserManager = lazy(() => import('@/pages/admin/UserManager'))
+const AdminWaitlist = lazy(() => import('@/pages/admin/Waitlist'))
+const Settings = lazy(() => import('@/pages/Settings'))
+const ManageBids = lazy(() => import('@/pages/facility/ManageBids'))
+const MyShifts = lazy(() => import('@/pages/facility/MyShifts'))
+const FacilityOnboarding = lazy(() => import('@/pages/facility/Onboarding'))
+const PostShift = lazy(() => import('@/pages/facility/PostShift'))
+const FacilityProfile = lazy(() => import('@/pages/facility/FacilityProfile'))
+const FacilityMyProfile = lazy(() => import('@/pages/facility/MyProfile'))
+const FacilityTransactions = lazy(() => import('@/pages/facility/Transactions'))
+const DocumentUpload = lazy(() => import('@/pages/professional/DocumentUpload'))
+const Earnings = lazy(() => import('@/pages/professional/Earnings'))
+const MyProfile = lazy(() => import('@/pages/professional/MyProfile'))
+const ProfessionalMyShifts = lazy(() => import('@/pages/professional/MyShifts'))
+const Onboarding = lazy(() => import('@/pages/professional/Onboarding'))
+const ProfessionalProfile = lazy(() => import('@/pages/professional/ProfessionalProfile'))
+const ShiftDetail = lazy(() => import('@/pages/professional/ShiftDetail'))
+const ShiftFeed = lazy(() => import('@/pages/professional/ShiftFeed'))
+
+// Shown while a lazy page chunk is downloading. Minimal by design — a centered
+// spinner on the app background — so route transitions don't flash empty content.
+function PageFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div
+        className="size-6 animate-spin rounded-full border-2 border-muted border-t-primary"
+        role="status"
+        aria-label="Loading"
+      />
+    </div>
+  )
+}
 
 // Gates a route behind authentication. Pass allowedRoles to also restrict by role
 // (omitted = any signed-in user). Waits for the initial session check so a refresh
@@ -95,6 +115,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Suspense fallback={<PageFallback />}>
       <Routes>
         {/* Public marketing landing (signed-out) / dashboard redirect (signed-in). */}
         <Route path="/" element={<RootRoute />} />
@@ -334,6 +355,7 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

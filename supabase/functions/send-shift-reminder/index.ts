@@ -4,6 +4,12 @@
 // change to trigger from, so this function drives send-sms directly and passes the
 // notif* fields for the professional so an in-app notification is also created.
 // Runs entirely server-side with the service-role key.
+//
+// Server-only: the caller must present the service-role key as the bearer token
+// (the pg_cron job in migration 029 does). Without this gate, verify_jwt only proves
+// the token was signed by this project — which the public anon key also satisfies —
+// so any visitor could trigger duplicate reminder SMS blasts (cost + spam). We check
+// the role claim rather than an exact key string so it survives key rotation.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -20,6 +26,19 @@ function json(body: unknown, status: number): Response {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+// Reads the `role` claim from a JWT payload without verifying the signature — the
+// platform (verify_jwt) already verified it, so this only inspects the claim.
+function roleFromJwt(token: string): string | null {
+  try {
+    const payload = token.split('.')[1];
+    const padded = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = JSON.parse(atob(padded));
+    return typeof decoded?.role === 'string' ? decoded.role : null;
+  } catch {
+    return null;
+  }
 }
 
 function addMinutes(date: Date, minutes: number): Date {
@@ -40,11 +59,21 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+  if (req.method !== 'POST') {
+    return json({ error: 'Method not allowed.' }, 405);
+  }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!supabaseUrl || !serviceRoleKey) {
     return json({ error: 'Reminders are not configured on the server.' }, 500);
+  }
+
+  // Server-only: reject anything that is not the service-role key (e.g. a user or
+  // anon JWT). The cron job calls this with the service-role bearer.
+  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+  if (roleFromJwt(token) !== 'service_role') {
+    return json({ error: 'Forbidden.' }, 403);
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey);

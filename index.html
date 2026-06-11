@@ -2,7 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Favicon set: SVG for modern browsers, PNG fallbacks (Google's favicon-in-search
+         is most reliable with a square raster ≥48px), plus apple-touch-icon + manifest. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#3ECF8E" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Locumii — the shift marketplace connecting Nigerian healthcare professionals with facilities. Verified credentials, escrow payments and ratings, launching in Abuja." />
     <link rel="canonical" href="https://www.locumii.com/" />
@@ -26,6 +33,30 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
     <script src="https://js.paystack.co/v1/inline.js"></script>
+
+    <!-- Organization structured data — Google's documented signal for the brand logo
+         (https://developers.google.com/search/docs/appearance/structured-data/logo).
+         The `logo` is what Google associates with the Locumii name in search. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Locumii",
+        "alternateName": "Locumii Health",
+        "url": "https://www.locumii.com/",
+        "logo": "https://www.locumii.com/icon-512.png",
+        "image": "https://www.locumii.com/og.png",
+        "description": "Locumii is the shift marketplace connecting verified Nigerian healthcare professionals with the facilities that need them — credentials, escrow payments and ratings built in.",
+        "foundingLocation": {
+          "@type": "Place",
+          "name": "Abuja, Nigeria"
+        },
+        "areaServed": {
+          "@type": "AdministrativeArea",
+          "name": "Federal Capital Territory, Nigeria"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

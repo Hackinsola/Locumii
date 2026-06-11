@@ -22,13 +22,13 @@ Deliver transactional SMS messages to professionals and facilities at every key 
 
 |Event              |Recipient   |Message                                                                                                                                                           |
 |-------------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|Credential approved|Professional|“Your Locumii credentials have been verified. You can now browse and bid on shifts. locumii.ng”                                                                   |
-|Credential rejected|Professional|“Your [doc type] on Locumii was not approved: [reason]. Please re-upload. locumii.ng”                                                                             |
-|Bid accepted       |Professional|“Your bid was accepted! [Facility name] confirmed your shift on [date] at [time]. locumii.ng”                                                                     |
-|Bid declined (auto)|Professional|“Your bid for [role] on [date] was not selected. Keep browsing shifts at locumii.ng”                                                                              |
+|Credential approved|Professional|“Your Locumii credentials have been verified. You can now browse and bid on shifts. locumii.com”                                                                   |
+|Credential rejected|Professional|“Your [doc type] on Locumii was not approved: [reason]. Please re-upload. locumii.com”                                                                             |
+|Bid accepted       |Professional|“Your bid was accepted! [Facility name] confirmed your shift on [date] at [time]. locumii.com”                                                                     |
+|Bid declined (auto)|Professional|“Your bid for [role] on [date] was not selected. Keep browsing shifts at locumii.com”                                                                              |
 |Shift reminder     |Both        |Professional: “Reminder: Your shift at [facility] starts in 2 hours. [date] [time].” Facility: “Reminder: [Professional name] arrives for their shift in 2 hours.”|
-|Payment released   |Professional|“₦[amount] has been sent to your [bank name] account for your shift at [facility]. locumii.ng”                                                                    |
-|Facility verified  |Facility    |“Your facility [name] has been verified on Locumii. You can now post shifts. locumii.ng”                                                                          |
+|Payment released   |Professional|“₦[amount] has been sent to your [bank name] account for your shift at [facility]. locumii.com”                                                                    |
+|Facility verified  |Facility    |“Your facility [name] has been verified on Locumii. You can now post shifts. locumii.com”                                                                          |
 
 -----
 

@@ -40,7 +40,7 @@ Give the platform admin a web interface to approve/reject professional credentia
 -- First create the auth user via Supabase dashboard Auth tab
 -- Then insert into public.users:
 insert into public.users (id, email, role, phone, status)
-values ('<auth_user_id>', 'admin@locumii.ng', 'admin', '+2348000000000', 'active');
+values ('<auth_user_id>', 'admin@locumii.com', 'admin', '+2348000000000', 'active');
 ```
 
 ### 2. Database Migration — `005_admin_rls_policies.sql`

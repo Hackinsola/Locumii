@@ -1,10 +1,14 @@
-// Google Analytics 4 (gtag.js). Loads ONLY when VITE_GA_MEASUREMENT_ID is set, so the
-// app runs with zero analytics in development or when unconfigured. SPA-aware: GA4's
-// automatic page_view is turned off (send_page_view: false) and we send one manually
-// on every route change, so client-side navigation is captured without double-counting
-// the initial load. Only the path is sent — never query strings — so no incidental
-// data leaks into analytics.
-const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
+// Google Analytics 4 (gtag.js). The production Measurement ID is baked in below; a
+// VITE_GA_MEASUREMENT_ID env var overrides it (e.g. for a separate staging property).
+// Analytics only runs in production builds — `npm run dev` sends nothing unless you
+// set the env var locally — so development traffic never pollutes the live property.
+// SPA-aware: GA4's automatic page_view is turned off (send_page_view: false) and we
+// send one manually on every route change, so client-side navigation is captured
+// without double-counting the initial load. Only the path is sent — never query
+// strings — so no incidental data leaks into analytics.
+const MEASUREMENT_ID =
+  import.meta.env.VITE_GA_MEASUREMENT_ID ||
+  (import.meta.env.PROD ? 'G-MSWTSM9YVY' : undefined);
 
 let initialized = false;
 

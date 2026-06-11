@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -5,6 +6,7 @@ import {
   CalendarClock,
   Lock,
   Search,
+  ShieldCheck,
   Star,
   Wallet,
 } from 'lucide-react';
@@ -12,6 +14,77 @@ import { Button } from '@/components/ui/button';
 import Logo from '@/components/layout/Logo';
 import Reveal from '@/components/layout/Reveal';
 import StatusBadge from '@/components/shifts/StatusBadge';
+
+// ── Motion helpers ───────────────────────────────────────────────────────────
+// Honour the OS "reduce motion" setting so the animated counters and the live
+// product preview fall back to their final/static state.
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(
+    () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+  useEffect(() => {
+    if (typeof matchMedia === 'undefined') {
+      return undefined;
+    }
+    const mq = matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return reduced;
+}
+
+// Fires once when the element first scrolls into view (used to start counters /
+// the live preview only when they're actually on screen).
+function useInView() {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(() => typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || typeof IntersectionObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, inView];
+}
+
+// Eases a number from 0 to `target` once `active` is true (easeOutCubic). Returns
+// the final value immediately under reduced motion.
+function useCountUp(target, active, durationMs = 1300) {
+  const reduced = useReducedMotion();
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    // Reduced motion / inactive: no animation; the value is returned directly below.
+    if (!active || reduced) {
+      return undefined;
+    }
+    let raf;
+    const start = performance.now();
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(Math.round(target * eased));
+      if (t < 1) {
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, active, reduced, durationMs]);
+  // Under reduced motion, skip straight to the final figure.
+  return reduced ? target : value;
+}
 
 // Marketing landing — a SINGLE light surface the whole way down (datafa.st / Podia /
 // June / Uvodo style): floating pill nav, a centered hero with one highlighted word +
@@ -75,10 +148,154 @@ function MockStat({ label, value, icon: Icon, accent = false }) {
   );
 }
 
-const MOCK_SHIFTS = [
+// A small pool the preview cycles through so the "Open shifts" feed reads as a
+// live, working marketplace rather than a frozen screenshot.
+const SHIFT_POOL = [
   { role: 'Locum Doctor — GP', place: 'Garki Hospital', pay: '₦45,000' },
   { role: 'Registered Nurse', place: 'Wuse Clinic', pay: '₦28,000' },
+  { role: 'Pharmacist', place: 'Gwarinpa Pharmacy', pay: '₦32,000' },
+  { role: 'Lab Scientist', place: 'Maitama Diagnostics', pay: '₦38,000' },
 ];
+
+// Browser-framed snapshot of the real app. The earnings figure counts up and the
+// open-shifts feed slowly rotates once the card is on screen — both static under
+// reduced motion.
+function ProductPreview() {
+  const reduced = useReducedMotion();
+  const [ref, inView] = useInView();
+  const earned = useCountUp(128500, inView);
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    if (reduced || !inView) {
+      return undefined;
+    }
+    const id = setInterval(() => setOffset((o) => (o + 1) % SHIFT_POOL.length), 3400);
+    return () => clearInterval(id);
+  }, [reduced, inView]);
+
+  const visible = [0, 1].map((i) => SHIFT_POOL[(offset + i) % SHIFT_POOL.length]);
+
+  return (
+    <div
+      ref={ref}
+      className="animate-float-y mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-foreground/10"
+    >
+      <div className="flex items-center gap-2 border-b border-border bg-card px-4 py-3">
+        <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
+        <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
+        <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
+        <span className="ml-3 hidden rounded-md bg-muted px-3 py-1 text-xs text-muted-foreground sm:block">
+          app.locumii.com
+        </span>
+      </div>
+      <div className="flex flex-col gap-4 bg-secondary/60 p-4 text-left sm:p-5">
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-primary-foreground">
+          <div>
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-primary-foreground/70">
+              Professional
+            </span>
+            <p className="text-sm font-bold sm:text-base">Welcome back, Amara</p>
+          </div>
+          <span className="hidden rounded-md bg-foreground/10 px-3 py-1.5 text-xs font-semibold sm:block">
+            Find shifts
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <MockStat label="Active bids" value="3" icon={Search} />
+          <MockStat label="Upcoming" value="2" icon={CalendarClock} />
+          <MockStat label="Earned" value={`₦${earned.toLocaleString('en-NG')}`} icon={Wallet} accent />
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Open shifts
+            </p>
+            {/* Live pulse — the feed is updating in front of you. */}
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-brand-green">
+              <span className="relative flex size-1.5">
+                <span
+                  className="animate-pulse-ring absolute inline-flex size-full rounded-full bg-brand-green"
+                  aria-hidden="true"
+                />
+                <span className="relative inline-flex size-1.5 rounded-full bg-brand-green" />
+              </span>
+              Live
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {visible.map((shift) => (
+              <div
+                key={shift.role}
+                className="flex animate-in items-center justify-between gap-3 rounded-lg border border-border p-2.5 duration-500 fade-in slide-in-from-bottom-1"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-medium">{shift.role}</span>
+                    <StatusBadge status="open" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">{shift.place}</span>
+                </div>
+                <span className="shrink-0 font-mono text-sm font-semibold">{shift.pay}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// A single count-up KPI in the proof band. `value` is the number to ease to;
+// `prefix`/`suffix` wrap it (e.g. ₦, h, %).
+function CountStat({ value, prefix = '', suffix = '', label }) {
+  const [ref, inView] = useInView();
+  const n = useCountUp(value, inView);
+  return (
+    <div ref={ref} className="flex flex-col items-center gap-1 text-center">
+      <span className="font-mono text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        {prefix}
+        {n}
+        {suffix}
+      </span>
+      <span className="text-xs font-medium text-muted-foreground sm:text-sm">{label}</span>
+    </div>
+  );
+}
+
+// Honest capability stats (not user counts) — confident, concrete, and true today.
+const PROOF_STATS = [
+  { value: 24, suffix: 'h', label: 'Typical payout' },
+  { value: 10, suffix: '%', label: 'Flat platform fee' },
+  { value: 48, suffix: 'h', label: 'Credential review' },
+  { value: 4, suffix: '', label: 'Specialties covered' },
+];
+
+// Regulatory / payment trust — the credibility signals that matter most for a
+// healthcare marketplace handling licences and money.
+const TRUST_ITEMS = [
+  { icon: ShieldCheck, label: 'Payments secured by Paystack' },
+  { icon: BadgeCheck, label: 'Credentials checked: MDCN · NYSC · CAC' },
+  { icon: Lock, label: 'Funds held in escrow until confirmed' },
+];
+
+function TrustStrip() {
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+      {TRUST_ITEMS.map(({ icon: Icon, label }) => (
+        <span
+          key={label}
+          className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground"
+        >
+          <Icon className="size-4 text-brand-green" aria-hidden="true" />
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function Landing() {
   return (
@@ -183,7 +400,7 @@ function Landing() {
           the clinics that need them — credentials, escrow payments and ratings built in.
         </Reveal>
 
-        <Reveal delay={240} className="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <Reveal delay={240} className="mt-7 flex flex-col items-center gap-2.5">
           <Button
             asChild
             size="lg"
@@ -197,6 +414,9 @@ function Landing() {
               />
             </Link>
           </Button>
+          <p className="text-xs text-muted-foreground">
+            Free to join · Launching in Abuja, FCT first · No card required
+          </p>
         </Reveal>
 
         <Reveal delay={320} className="mt-7 flex items-center justify-center gap-3">
@@ -226,58 +446,24 @@ function Landing() {
                 'radial-gradient(closest-side, color-mix(in oklab, var(--brand-green) 22%, transparent), transparent)',
             }}
           />
-          <div className="animate-float-y mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-foreground/10">
-            <div className="flex items-center gap-2 border-b border-border bg-card px-4 py-3">
-              <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
-              <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
-              <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
-              <span className="ml-3 hidden rounded-md bg-muted px-3 py-1 text-xs text-muted-foreground sm:block">
-                app.locumii.com
-              </span>
-            </div>
-            <div className="flex flex-col gap-4 bg-secondary/60 p-4 text-left sm:p-5">
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-primary-foreground">
-                <div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-primary-foreground/70">
-                    Professional
-                  </span>
-                  <p className="text-sm font-bold sm:text-base">Welcome back, Amara</p>
-                </div>
-                <span className="hidden rounded-md bg-foreground/10 px-3 py-1.5 text-xs font-semibold sm:block">
-                  Find shifts
-                </span>
-              </div>
+          <ProductPreview />
+        </Reveal>
 
-              <div className="grid grid-cols-3 gap-3">
-                <MockStat label="Active bids" value="3" icon={Search} />
-                <MockStat label="Upcoming" value="2" icon={CalendarClock} />
-                <MockStat label="Earned" value="₦128,500" icon={Wallet} accent />
-              </div>
+        {/* Proof band — honest, concrete capability stats that count up on view. */}
+        <Reveal delay={120} className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-8 sm:grid-cols-4">
+          {PROOF_STATS.map((stat) => (
+            <CountStat
+              key={stat.label}
+              value={stat.value}
+              suffix={stat.suffix}
+              label={stat.label}
+            />
+          ))}
+        </Reveal>
 
-              <div className="rounded-xl border border-border bg-card p-3">
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Open shifts
-                </p>
-                <div className="flex flex-col gap-2">
-                  {MOCK_SHIFTS.map((shift) => (
-                    <div
-                      key={shift.role}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-border p-2.5"
-                    >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-medium">{shift.role}</span>
-                          <StatusBadge status="open" />
-                        </div>
-                        <span className="text-xs text-muted-foreground">{shift.place}</span>
-                      </div>
-                      <span className="shrink-0 font-mono text-sm font-semibold">{shift.pay}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Trust strip — payment + regulatory credibility. */}
+        <Reveal delay={200} className="mt-10">
+          <TrustStrip />
         </Reveal>
       </section>
 
@@ -380,7 +566,7 @@ function Landing() {
             Join the professionals and facilities replacing informal locum recruitment with one
             verified, accountable marketplace.
           </p>
-          <div className="mt-7 flex justify-center">
+          <div className="mt-7 flex flex-col items-center gap-2.5">
             <Button asChild size="lg" className="cta-sheen bg-foreground text-background hover:bg-foreground/90">
               <Link to="/waitlist">
                 Join the waitlist
@@ -390,6 +576,9 @@ function Landing() {
                 />
               </Link>
             </Button>
+            <p className="text-xs text-primary-foreground/70">
+              Be first when we launch · No card required
+            </p>
           </div>
         </Reveal>
       </section>

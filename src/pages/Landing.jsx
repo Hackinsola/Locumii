@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BadgeCheck,
   CalendarClock,
+  ChevronDown,
   Lock,
   Search,
   ShieldCheck,
@@ -84,6 +85,20 @@ function useCountUp(target, active, durationMs = 1300) {
   }, [target, active, reduced, durationMs]);
   // Under reduced motion, skip straight to the final figure.
   return reduced ? target : value;
+}
+
+// True once the page has scrolled past `threshold` px — used to settle the
+// floating nav onto a more solid background as the user leaves the hero.
+function useScrolled(threshold = 12) {
+  const [scrolled, setScrolled] = useState(
+    () => typeof window !== 'undefined' && window.scrollY > threshold
+  );
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > threshold);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [threshold]);
+  return scrolled;
 }
 
 // Marketing landing — a SINGLE light surface the whole way down (datafa.st / Podia /
@@ -297,12 +312,93 @@ function TrustStrip() {
   );
 }
 
+// Objection-killers, answered with concrete specifics (real councils, licence
+// bodies, timeframes and fee mechanics) rather than vague reassurance.
+const FAQ_ITEMS = [
+  {
+    q: 'How fast do I get paid?',
+    a: 'Funds are released to your bank within 24 hours of both sides confirming the shift is done. A flat 10% platform fee is deducted at payout — no hidden charges, no waiting weeks for an invoice.',
+  },
+  {
+    q: 'How are professionals verified?',
+    a: 'Every professional uploads their council licence (MDCN for doctors, PCN for pharmacists, NMCN for nurses, or MLSCN for lab scientists), their NYSC certificate and a government ID. Our team reviews each one — usually within 48 hours — before they can bid on a single shift.',
+  },
+  {
+    q: 'Is my payment protected?',
+    a: 'Yes. Facilities pay the posted rate upfront into escrow the moment a shift goes live. The money is only released to the professional after both parties confirm the shift was completed — so no one ever pays for work that did not happen.',
+  },
+  {
+    q: 'What does the 10% fee cover?',
+    a: 'Credential verification, escrow handling, Paystack processing and dispute support. The facility pays the rate it posts; the professional receives that rate minus the flat 10%. No subscriptions, no per-post charges, no card on file.',
+  },
+  {
+    q: 'Where is Locumii available?',
+    a: 'We are launching in Abuja (FCT) first, across all six area councils — AMAC, Bwari, Gwagwalada, Kuje, Kwali and Abaji — covering doctors, nurses, pharmacists and medical lab scientists. Lagos and other states follow in Phase 2.',
+  },
+];
+
+// Single-open accordion item with a smooth grid-rows expand (no max-height guess).
+function FaqItem({ item, open, onToggle }) {
+  return (
+    <div className="border-b border-border">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-4 py-5 text-left"
+      >
+        <span className="text-base font-semibold text-foreground">{item.q}</span>
+        <ChevronDown
+          className={`size-5 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none ${
+            open ? 'rotate-180 text-brand-green' : ''
+          }`}
+          aria-hidden="true"
+        />
+      </button>
+      <div
+        className={`grid transition-all duration-300 ease-out motion-reduce:transition-none ${
+          open ? 'grid-rows-[1fr] pb-5 opacity-100' : 'grid-rows-[0fr] opacity-0'
+        }`}
+      >
+        <div className="overflow-hidden">
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{item.a}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FaqSection() {
+  const [openIndex, setOpenIndex] = useState(0);
+  return (
+    <div className="mx-auto max-w-3xl">
+      {FAQ_ITEMS.map((item, index) => (
+        <FaqItem
+          key={item.q}
+          item={item}
+          open={openIndex === index}
+          onToggle={() => setOpenIndex((current) => (current === index ? -1 : index))}
+        />
+      ))}
+    </div>
+  );
+}
+
 function Landing() {
+  const scrolled = useScrolled();
   return (
     <div className="min-h-screen overflow-x-clip scroll-smooth bg-secondary text-foreground">
       {/* ── Floating pill nav ─────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 px-4 pt-4">
-        <div className="mx-auto flex h-14 w-full max-w-5xl animate-in items-center justify-between rounded-full border border-border bg-card/80 pl-5 pr-2 backdrop-blur duration-700 fade-in slide-in-from-top-2">
+        {/* Settles onto a more solid, shadowed background once the user scrolls
+            past the hero — a small premium detail. */}
+        <div
+          className={`mx-auto flex h-14 w-full max-w-5xl animate-in items-center justify-between rounded-full border pl-5 pr-2 backdrop-blur transition-[background-color,border-color,box-shadow] duration-500 fade-in slide-in-from-top-2 ${
+            scrolled
+              ? 'border-border bg-card/95 shadow-lg shadow-foreground/5'
+              : 'border-border/60 bg-card/70'
+          }`}
+        >
           <Link to="/" aria-label="Locumii home">
             <Logo />
           </Link>
@@ -311,6 +407,7 @@ function Landing() {
               { href: '#how', label: 'How it works' },
               { href: '#professionals', label: 'For professionals' },
               { href: '#facilities', label: 'For facilities' },
+              { href: '#faq', label: 'FAQ' },
             ].map((item) => (
               <a
                 key={item.href}
@@ -487,7 +584,8 @@ function Landing() {
                 Funds land within 24 hours of confirmation — a flat 10% fee, no surprises.
               </ValueCard>
               <ValueCard icon={BadgeCheck} title="A verified badge">
-                Upload your council licence, NYSC cert and ID once; approved in about 48 hours.
+                Upload your MDCN, PCN, NMCN or MLSCN licence, NYSC cert and ID once — approved in
+                about 48 hours.
               </ValueCard>
               <ValueCard icon={Star} title="Ratings that travel">
                 Build a public track record facilities can trust, shift after shift.
@@ -506,7 +604,8 @@ function Landing() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <ValueCard icon={CalendarClock} title="Post in minutes">
-                Set the role, time and pay rate; reach verified professionals across the FCT.
+                Set the role, time and pay rate; reach verified professionals across all six FCT
+                area councils.
               </ValueCard>
               <ValueCard icon={BadgeCheck} title="See real credentials">
                 Every bidder is admin-verified, with licences and ratings on their profile.
@@ -554,6 +653,21 @@ function Landing() {
             </Reveal>
           ))}
         </div>
+      </section>
+
+      {/* ── FAQ ───────────────────────────────────────────────────────── */}
+      <section id="faq" className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 pb-16 sm:px-6 sm:pb-20">
+        <Reveal>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Questions, answered
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The things professionals and facilities ask us most.
+          </p>
+        </Reveal>
+        <Reveal delay={100} className="mt-8">
+          <FaqSection />
+        </Reveal>
       </section>
 
       {/* ── Contained CTA card ────────────────────────────────────────── */}

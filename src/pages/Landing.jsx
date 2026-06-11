@@ -15,6 +15,11 @@ import { Button } from '@/components/ui/button';
 import Logo from '@/components/layout/Logo';
 import Reveal from '@/components/layout/Reveal';
 import StatusBadge from '@/components/shifts/StatusBadge';
+import { useWaitlistCount } from '@/hooks/useWaitlist';
+
+// Only surface the live waitlist count once it's a confident number; below this we
+// keep the qualitative line so a tiny early list never reads as weak social proof.
+const WAITLIST_PROOF_THRESHOLD = 25;
 
 // ── Motion helpers ───────────────────────────────────────────────────────────
 // Honour the OS "reduce motion" setting so the animated counters and the live
@@ -386,6 +391,10 @@ function FaqSection() {
 
 function Landing() {
   const scrolled = useScrolled();
+  const waitlistCount = useWaitlistCount();
+  // Floor to the nearest 10 so the "+" reads honestly (e.g. 47 → "40+ on the waitlist").
+  const showCount = waitlistCount !== null && waitlistCount >= WAITLIST_PROOF_THRESHOLD;
+  const flooredCount = showCount ? Math.floor(waitlistCount / 10) * 10 : 0;
   return (
     <div className="min-h-screen overflow-x-clip scroll-smooth bg-secondary text-foreground">
       {/* ── Floating pill nav ─────────────────────────────────────────── */}
@@ -528,7 +537,9 @@ function Landing() {
             ))}
           </div>
           <span className="text-sm text-muted-foreground">
-            Built for verified clinics &amp; locums across the FCT
+            {showCount
+              ? `Join ${flooredCount.toLocaleString('en-NG')}+ professionals & clinics on the waitlist`
+              : 'Built for verified clinics & locums across the FCT'}
           </span>
         </Reveal>
 
@@ -653,6 +664,42 @@ function Landing() {
             </Reveal>
           ))}
         </div>
+      </section>
+
+      {/* ── Mission note ──────────────────────────────────────────────── */}
+      <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
+        <Reveal className="relative mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border bg-card px-6 py-12 text-center sm:px-12 sm:py-14">
+          {/* Soft brand glow behind the statement. */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-40 w-80 max-w-[90%] -translate-x-1/2 rounded-full blur-3xl"
+            style={{
+              background:
+                'radial-gradient(closest-side, color-mix(in oklab, var(--brand-green) 16%, transparent), transparent)',
+            }}
+          />
+          <span
+            aria-hidden="true"
+            className="font-mono text-5xl leading-none text-brand-green/40"
+          >
+            &ldquo;
+          </span>
+          <p className="mx-auto mt-3 max-w-2xl text-balance text-xl font-medium leading-relaxed tracking-tight text-foreground sm:text-2xl">
+            Locum staffing in Nigeria still runs on WhatsApp groups and trust-me promises — and the
+            people doing the work too often get paid late, or not at all. We&rsquo;re building
+            Locumii so every professional is verified once, every shift is backed by escrow, and
+            payment lands within 24 hours of the job being done. No group chats. No chasing.
+          </p>
+          <div className="mt-7 flex items-center justify-center gap-3">
+            <span className="flex size-9 items-center justify-center rounded-full bg-brand-green/10 text-sm font-bold text-brand-green">
+              L
+            </span>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-foreground">The Locumii team</p>
+              <p className="text-xs text-muted-foreground">Building locum staffing for Nigeria</p>
+            </div>
+          </div>
+        </Reveal>
       </section>
 
       {/* ── FAQ ───────────────────────────────────────────────────────── */}

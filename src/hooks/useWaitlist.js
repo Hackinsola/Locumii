@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { trackEvent } from '@/lib/analytics';
 
 // Live waitlist size for the landing's social proof, via the privacy-preserving
 // waitlist_count() RPC (returns only the aggregate — never any row/PII). Returns
@@ -42,6 +43,13 @@ export function useWaitlist() {
       setError(insertError.message ?? 'Something went wrong. Please try again.');
       setStatus('error');
       return false;
+    }
+
+    // Count only a genuinely new row as a conversion — a duplicate email (23505)
+    // means they already joined, so it isn't a fresh lead. `generate_lead` is GA4's
+    // recommended event for a waitlist/lead-capture form.
+    if (!insertError) {
+      trackEvent('generate_lead', { method: 'waitlist', role: role || 'unspecified' });
     }
 
     setStatus('success');

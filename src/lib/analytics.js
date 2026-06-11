@@ -51,3 +51,11 @@ export function trackPageView(path) {
     page_title: document.title,
   });
 }
+
+// Sends a custom GA4 event (e.g. a conversion). No-op when analytics is disabled.
+export function trackEvent(name, params = {}) {
+  if (!MEASUREMENT_ID || typeof window === 'undefined' || typeof window.gtag !== 'function') {
+    return;
+  }
+  window.gtag('event', name, params);
+}

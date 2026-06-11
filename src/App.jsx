@@ -1,6 +1,7 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth, useAuthListener } from '@/hooks/useAuth'
+import { initAnalytics, trackPageView } from '@/lib/analytics'
 import AppLayout from '@/components/layout/AppLayout'
 
 // Pages are lazy-loaded so each route ships as its own chunk: a signed-out visitor
@@ -50,6 +51,18 @@ function PageFallback() {
       />
     </div>
   )
+}
+
+// Fires a GA4 page_view on every client-side route change (and the initial load).
+// Renders nothing; lives inside the Router so it can read the current location.
+// No-op unless VITE_GA_MEASUREMENT_ID is configured.
+function RouteAnalytics() {
+  const location = useLocation()
+  useEffect(() => {
+    initAnalytics()
+    trackPageView(location.pathname)
+  }, [location.pathname])
+  return null
 }
 
 // Gates a route behind authentication. Pass allowedRoles to also restrict by role
@@ -115,6 +128,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <RouteAnalytics />
       <Suspense fallback={<PageFallback />}>
       <Routes>
         {/* Public marketing landing (signed-out) / dashboard redirect (signed-in). */}

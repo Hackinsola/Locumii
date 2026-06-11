@@ -179,7 +179,9 @@
 /* ── Brand motion ──────────────────────────────────────────────────────────
    Refined, low-frequency animations for the marketing surface. High-impact
    moments only (ambient depth, a live signal, a floating product shot, an
-   accent underline that draws in). All silenced under prefers-reduced-motion. */
+   accent underline that draws in, a sheen sweep on the CTA). Everything is
+   transform/opacity-only (compositor-friendly) and silenced under
+   prefers-reduced-motion. */
 @keyframes breathe {
   0%, 100% { transform: scale(1); opacity: 0.45; }
   50%      { transform: scale(1.15); opacity: 0.75; }
@@ -193,12 +195,47 @@
   70%  { transform: scale(2.6); opacity: 0; }
   100% { transform: scale(2.6); opacity: 0; }
 }
+/* The signature hero moment: an accent underline that draws in left-to-right,
+   timed to land just as the headline finishes its reveal. */
+@keyframes draw-underline {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+/* A single light sweep across a CTA on hover. */
+@keyframes sheen {
+  to { transform: translateX(130%); }
+}
 .animate-breathe   { animation: breathe 8s ease-in-out infinite; }
 .animate-float-y   { animation: float-y 7s ease-in-out infinite; }
 .animate-pulse-ring { animation: pulse-ring 2.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.animate-draw-underline {
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: draw-underline 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.55s forwards;
+}
+
+/* CTA sheen — a diagonal highlight that sweeps once on hover. The pseudo-element
+   overlays the button briefly; pointer-events stay off so it never blocks clicks. */
+.cta-sheen { position: relative; overflow: hidden; }
+.cta-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    color-mix(in oklab, white 45%, transparent) 50%,
+    transparent 65%
+  );
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+.cta-sheen:hover::after { animation: sheen 0.85s ease forwards; }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-breathe,
   .animate-float-y,
   .animate-pulse-ring { animation: none; }
+  .animate-draw-underline { animation: none; transform: scaleX(1); }
+  .cta-sheen:hover::after { animation: none; }
 }

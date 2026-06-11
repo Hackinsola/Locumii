@@ -108,7 +108,7 @@ function Landing() {
             <Button
               asChild
               size="sm"
-              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+              className="cta-sheen rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <Link to="/waitlist">Join the waitlist</Link>
             </Button>
@@ -118,6 +118,21 @@ function Landing() {
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <section className="relative isolate mx-auto w-full max-w-4xl px-4 pb-10 pt-16 text-center sm:pt-20">
+        {/* Fine dot-grid texture — quiet depth behind the hero, masked to fade out
+            toward the edges so it never competes with the headline. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-20"
+          style={{
+            backgroundImage:
+              'radial-gradient(color-mix(in oklab, var(--foreground) 7%, transparent) 1px, transparent 1px)',
+            backgroundSize: '22px 22px',
+            maskImage:
+              'radial-gradient(ellipse 58% 52% at 50% 32%, #000 25%, transparent 72%)',
+            WebkitMaskImage:
+              'radial-gradient(ellipse 58% 52% at 50% 32%, #000 25%, transparent 72%)',
+          }}
+        />
         {/* Ambient breathing glow — atmosphere/depth behind the hero. */}
         <div
           aria-hidden="true"
@@ -149,7 +164,14 @@ function Landing() {
           className="mx-auto mt-5 max-w-3xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] sm:text-5xl lg:text-6xl"
         >
           Healthcare shifts, staffed and{' '}
-          <span className="text-brand-green">paid</span> in one place.
+          <span className="relative inline-block whitespace-nowrap text-brand-green">
+            paid
+            <span
+              aria-hidden="true"
+              className="animate-draw-underline absolute -bottom-0.5 left-0 h-[0.12em] w-full rounded-full bg-brand-green/60"
+            />
+          </span>{' '}
+          in one place.
         </Reveal>
 
         <Reveal
@@ -165,7 +187,7 @@ function Landing() {
           <Button
             asChild
             size="lg"
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            className="cta-sheen bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Link to="/waitlist">
               Join the waitlist
@@ -194,7 +216,16 @@ function Landing() {
         </Reveal>
 
         {/* Product preview — a browser-framed snapshot of the real app, gently floating. */}
-        <Reveal delay={400} className="mt-14">
+        <Reveal delay={400} className="relative mt-14">
+          {/* Soft green glow grounding the floating card — reads as a cast light. */}
+          <div
+            aria-hidden="true"
+            className="animate-breathe pointer-events-none absolute inset-x-8 bottom-2 top-10 -z-10 rounded-full blur-3xl"
+            style={{
+              background:
+                'radial-gradient(closest-side, color-mix(in oklab, var(--brand-green) 22%, transparent), transparent)',
+            }}
+          />
           <div className="animate-float-y mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-foreground/10">
             <div className="flex items-center gap-2 border-b border-border bg-card px-4 py-3">
               <span className="size-3 rounded-full bg-muted-foreground/25" aria-hidden="true" />
@@ -350,7 +381,7 @@ function Landing() {
             verified, accountable marketplace.
           </p>
           <div className="mt-7 flex justify-center">
-            <Button asChild size="lg" className="bg-foreground text-background hover:bg-foreground/90">
+            <Button asChild size="lg" className="cta-sheen bg-foreground text-background hover:bg-foreground/90">
               <Link to="/waitlist">
                 Join the waitlist
                 <ArrowRight

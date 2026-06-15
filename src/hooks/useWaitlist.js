@@ -28,13 +28,15 @@ export function useWaitlistCount() {
 export function useWaitlist() {
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
   const [error, setError] = useState(null);
+  const [position, setPosition] = useState(null);
 
   async function join({ email, fullName, role }) {
     setStatus('submitting');
     setError(null);
 
+    const normalizedEmail = email.trim().toLowerCase();
     const { error: insertError } = await supabase.from('waitlist').insert({
-      email: email.trim().toLowerCase(),
+      email: normalizedEmail,
       full_name: fullName?.trim() || null,
       role: role || null,
     });
@@ -52,9 +54,59 @@ export function useWaitlist() {
       trackEvent('generate_lead', { method: 'waitlist', role: role || 'unspecified' });
     }
 
+    // Their honest position in line (nominators rank higher — see migration 036).
+    const { data: pos } = await supabase.rpc('waitlist_position', { p_email: normalizedEmail });
+    if (typeof pos === 'number') {
+      setPosition(pos);
+    }
+
     setStatus('success');
     return true;
   }
 
-  return { join, status, error };
+  // Lets the nomination flow update the displayed position after a referral bumps it.
+  return { join, status, error, position, setPosition };
+}
+
+// Submits a facility nomination (Spec 13). Returns the nominator's NEW waitlist
+// position so the caller can show the real movement. Each call is one lead.
+export function useFacilityReferral() {
+  const [status, setStatus] = useState('idle'); // idle | submitting | success | error
+  const [error, setError] = useState(null);
+
+  async function nominate({
+    refereeEmail,
+    facilityName,
+    city,
+    facilityType,
+    contactName,
+    contactInfo,
+    relationship,
+  }) {
+    setStatus('submitting');
+    setError(null);
+    try {
+      const { data, error: rpcError } = await supabase.rpc('submit_facility_referral', {
+        p_referee_email: refereeEmail,
+        p_facility_name: facilityName,
+        p_city: city,
+        p_facility_type: facilityType || null,
+        p_contact_name: contactName || null,
+        p_contact_info: contactInfo || null,
+        p_relationship: relationship || null,
+      });
+      if (rpcError) {
+        throw rpcError;
+      }
+      trackEvent('facility_referral', { city: city || 'unspecified' });
+      setStatus('success');
+      return { position: typeof data === 'number' ? data : null, error: null };
+    } catch (caught) {
+      setError(caught.message ?? 'Could not submit the facility. Please try again.');
+      setStatus('error');
+      return { position: null, error: caught };
+    }
+  }
+
+  return { nominate, status, error };
 }

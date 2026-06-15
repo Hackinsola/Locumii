@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/components/layout/AuthLayout';
+import FacilityReferralForm from '@/components/waitlist/FacilityReferralForm';
 import { useWaitlist } from '@/hooks/useWaitlist';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -11,9 +12,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Pre-launch "Get started" destination. Captures early-access interest (email + role +
 // optional name) into the Supabase waitlist table — NOT the real account/password
 // signup, which lives at /auth/register and goes live at launch. Reuses AuthLayout so
-// it shares the branded split-screen with the auth pages.
+// it shares the branded split-screen with the auth pages. After joining, professionals
+// are prompted to nominate facilities they know (Spec 13), which moves them up the line.
 function Waitlist() {
-  const { join, status } = useWaitlist();
+  const { join, status, position, setPosition } = useWaitlist();
   const [form, setForm] = useState({ role: '', email: '', fullName: '' });
   const [errors, setErrors] = useState({});
 
@@ -54,12 +56,38 @@ function Waitlist() {
           </Link>
         }
       >
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-center">
-          <CheckCircle2 className="size-10 text-primary" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">
-            We'll email <span className="font-medium text-foreground">{form.email.trim()}</span> the
-            moment early access opens in Abuja. No spam — just the launch.
-          </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-6 text-center">
+            <CheckCircle2 className="size-9 text-primary" aria-hidden="true" />
+            {position !== null && (
+              <p className="font-mono text-3xl font-bold tracking-tight text-foreground">
+                You&rsquo;re #{position} in line
+              </p>
+            )}
+            <p className="text-sm text-muted-foreground">
+              We&rsquo;ll email{' '}
+              <span className="font-medium text-foreground">{form.email.trim()}</span> the moment
+              early access opens in Abuja. No spam — just the launch.
+            </p>
+          </div>
+
+          {/* Spec 13 — supply-side referral: nominate facilities to move up the line. */}
+          <div className="flex flex-col gap-2 rounded-xl border border-border bg-secondary/50 p-5">
+            <h3 className="text-base font-semibold text-foreground">
+              Know a clinic that needs locum staff?
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Professionals like you know which clinics hire locums. Tell us about them — we&rsquo;ll
+              reach out on your behalf, and you&rsquo;ll move up the waitlist for every facility you
+              nominate.
+            </p>
+            <div className="mt-2">
+              <FacilityReferralForm
+                refereeEmail={form.email.trim().toLowerCase()}
+                onPositionChange={setPosition}
+              />
+            </div>
+          </div>
         </div>
       </AuthLayout>
     );

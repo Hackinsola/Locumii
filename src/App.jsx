@@ -22,6 +22,7 @@ const CredentialQueue = lazy(() => import('@/pages/admin/CredentialQueue'))
 const FacilityQueue = lazy(() => import('@/pages/admin/FacilityQueue'))
 const UserManager = lazy(() => import('@/pages/admin/UserManager'))
 const AdminWaitlist = lazy(() => import('@/pages/admin/Waitlist'))
+const AdminFacilityReferrals = lazy(() => import('@/pages/admin/FacilityReferrals'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const ManageBids = lazy(() => import('@/pages/facility/ManageBids'))
 const MyShifts = lazy(() => import('@/pages/facility/MyShifts'))
@@ -354,6 +355,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminWaitlist />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/referrals"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminFacilityReferrals />
             </ProtectedRoute>
           }
         />

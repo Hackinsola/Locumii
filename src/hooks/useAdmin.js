@@ -105,6 +105,71 @@ export function useWaitlistSignups() {
   return { signups, loading, error, refetch: fetchSignups };
 }
 
+// Facility nominations from the waitlist (Spec 13) — the warm-lead pipeline. Admin
+// reads all via facility_referrals_select_admin. Newest first, one generous page.
+export function useFacilityReferrals() {
+  const [referrals, setReferrals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchReferrals = useCallback(async () => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('facility_referrals')
+        .select(
+          'id, referee_email, facility_name, city, facility_type, contact_name, contact_info, relationship, status, created_at'
+        )
+        .order('created_at', { ascending: false })
+        .range(0, 999);
+      if (fetchError) {
+        throw fetchError;
+      }
+      setReferrals(data ?? []);
+      setError(null);
+    } catch (caught) {
+      setError(caught);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchReferrals();
+  }, [fetchReferrals]);
+
+  return { referrals, loading, error, refetch: fetchReferrals };
+}
+
+// Moves a lead through its pipeline (pending → contacted → signed_up / not_interested)
+// via the facility_referrals_update_admin policy.
+export function useUpdateReferralStatus() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const setStatus = useCallback(async (id, status) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error: updateError } = await supabase
+        .from('facility_referrals')
+        .update({ status })
+        .eq('id', id);
+      if (updateError) {
+        throw updateError;
+      }
+      return { error: null };
+    } catch (caught) {
+      setError(caught);
+      return { error: caught };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { setStatus, loading, error };
+}
+
 // Facilities awaiting verification (is_verified = false). Admin reads all rows via
 // the facility_profiles select policy. One page, oldest first.
 export function usePendingFacilities() {

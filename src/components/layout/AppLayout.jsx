@@ -10,6 +10,7 @@ import {
   Plus,
   Receipt,
   Search,
+  Sparkles,
   User,
   Users,
   Wallet,
@@ -46,6 +47,7 @@ const LINKS_BY_ROLE = {
     { to: '/admin/facilities', label: 'Facilities', icon: Building2 },
     { to: '/admin/users', label: 'Users', icon: Users },
     { to: '/admin/waitlist', label: 'Waitlist', icon: ClipboardList },
+    { to: '/admin/referrals', label: 'Leads', icon: Sparkles },
   ],
 };
 

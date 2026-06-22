@@ -2,14 +2,13 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import {
   Briefcase,
   Building2,
-  CalendarCheck,
   ClipboardList,
+  Compass,
   FileCheck,
+  Home,
   LayoutDashboard,
   LogOut,
   Plus,
-  Receipt,
-  Search,
   Sparkles,
   User,
   Users,
@@ -28,17 +27,16 @@ import BottomNav from './BottomNav';
 // the mobile bottom nav.
 const LINKS_BY_ROLE = {
   professional: [
-    { to: '/professional/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/professional/shifts', label: 'Find shifts', icon: Search },
-    { to: '/professional/my-shifts', label: 'My shifts', icon: CalendarCheck },
+    { to: '/professional/dashboard', label: 'Explore', icon: Compass },
+    { to: '/professional/my-shifts', label: 'My Jobs', icon: Briefcase },
     { to: '/professional/earnings', label: 'Earnings', icon: Wallet },
     { to: '/professional/profile', label: 'Profile', icon: User },
   ],
   facility: [
-    { to: '/facility/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/facility/post-shift', label: 'Post shift', icon: Plus },
-    { to: '/facility/shifts', label: 'My shifts', icon: Briefcase },
-    { to: '/facility/transactions', label: 'Transactions', icon: Receipt },
+    { to: '/facility/dashboard', label: 'Home', icon: Home },
+    { to: '/facility/shifts', label: 'Jobs', icon: Briefcase },
+    { to: '/facility/post-shift', label: 'Post', icon: Plus },
+    { to: '/facility/transactions', label: 'Payments', icon: Wallet },
     { to: '/facility/profile', label: 'Profile', icon: Building2 },
   ],
   admin: [

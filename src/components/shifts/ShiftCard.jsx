@@ -1,33 +1,82 @@
+import { CalendarDays, Clock, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import InitialsAvatar from '@/components/ui/InitialsAvatar';
 import StatusBadge from '@/components/shifts/StatusBadge';
-import { formatShiftRange } from '@/utils/dateTime';
+import {
+  formatShiftDate,
+  formatTimeRange,
+  shiftDurationHours,
+  formatDurationHours,
+} from '@/utils/dateTime';
 import { formatNaira } from '@/utils/money';
+import { cn } from '@/lib/utils';
 
-// Dumb presentational card for one shift. Receives a shift row (with the facility
-// embedded) and renders it — no data fetching, no navigation.
-function ShiftCard({ shift }) {
-  const facility = Array.isArray(shift.facility_profiles)
-    ? shift.facility_profiles[0]
-    : shift.facility_profiles;
+function single(embedded) {
+  return Array.isArray(embedded) ? embedded[0] : embedded;
+}
+
+// One job in a list — the LAI "clinic card": a circular facility mark, the facility
+// name over the role, a calendar/clock meta row, and the pay in brand green with the
+// per-hour breakdown beside it. Dumb presentational component: pass an embedded shift.
+//   `urgent`  — red top ribbon + ring (e.g. shifts starting very soon)
+//   `badge`   — show the shift StatusBadge (used in My Jobs, hidden in the open feed)
+//   `footer`  — extra trailing node under the card body (e.g. a bid-status line)
+function ShiftCard({ shift, urgent = false, badge = false, footer }) {
+  const facility = single(shift.facility_profiles);
+  const facilityName = facility?.facility_name ?? 'Facility';
+  const hours = shiftDurationHours(shift.start_time, shift.end_time);
+  const hourly = hours > 0 ? formatNaira(Math.round(shift.pay_rate_naira / hours)) : null;
 
   return (
-    <Card className="transition duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
-      <CardContent className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium text-foreground">{shift.role_required}</h3>
-            <StatusBadge status={shift.status} />
-          </div>
-          <span className="font-mono text-sm font-semibold text-foreground">
-            {formatNaira(shift.pay_rate_naira)}
-          </span>
+    <Card
+      className={cn(
+        'gap-0 py-0 transition duration-200 hover:-translate-y-0.5 hover:shadow-md',
+        urgent && 'ring-2 ring-destructive/60'
+      )}
+    >
+      {urgent && (
+        <div className="flex items-center gap-1 bg-destructive px-4 py-1 text-[11px] font-semibold tracking-wide text-white uppercase">
+          <Zap className="size-3" aria-hidden="true" />
+          Urgent
         </div>
-        <p className="text-sm text-muted-foreground">
-          {facility?.facility_name ?? 'Facility'} · {shift.city}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {formatShiftRange(shift.start_time, shift.end_time)}
-        </p>
+      )}
+      <CardContent className="flex gap-3 p-4">
+        <InitialsAvatar name={facilityName} size="md" />
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h3 className="truncate text-sm font-semibold text-foreground">{facilityName}</h3>
+              <p className="truncate text-xs text-muted-foreground">
+                {shift.role_required} · {shift.city}
+              </p>
+            </div>
+            {badge && <StatusBadge status={shift.status} />}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <CalendarDays className="size-3.5" aria-hidden="true" />
+              {formatShiftDate(shift.start_time)}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Clock className="size-3.5" aria-hidden="true" />
+              {formatTimeRange(shift.start_time, shift.end_time)}
+            </span>
+          </div>
+
+          <div className="flex items-baseline gap-2">
+            <span className="text-base font-bold text-primary">
+              {formatNaira(shift.pay_rate_naira)}
+            </span>
+            {hourly && (
+              <span className="text-xs text-muted-foreground">
+                ({formatDurationHours(shift.start_time, shift.end_time)} · {hourly}/hr)
+              </span>
+            )}
+          </div>
+
+          {footer}
+        </div>
       </CardContent>
     </Card>
   );

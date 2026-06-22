@@ -1,19 +1,16 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { CalendarX2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import StatusBadge from '@/components/shifts/StatusBadge';
+import { Link } from 'react-router-dom';
+import { CalendarPlus, CalendarX2 } from 'lucide-react';
+import ShiftCard from '@/components/shifts/ShiftCard';
 import EmptyState from '@/components/ui/EmptyState';
 import PageHeader from '@/components/layout/PageHeader';
-import { useProfessionalBids } from '@/hooks/useBids';
-import { formatShiftRange } from '@/utils/dateTime';
-import { formatNaira } from '@/utils/money';
-import { shiftIcsHref } from '@/utils/calendar';
 import PageContainer from '@/components/layout/PageContainer';
+import { useProfessionalBids } from '@/hooks/useBids';
+import { shiftIcsHref } from '@/utils/calendar';
+import { cn } from '@/lib/utils';
 
 const BID_STATUS_LABELS = {
-  pending: 'Pending',
+  pending: 'Pending review',
   accepted: 'Accepted',
   rejected: 'Not selected',
   cancelled: 'Cancelled',
@@ -22,7 +19,7 @@ const BID_STATUS_LABELS = {
 // Tabs segregate the professional's bids by outcome. "Not selected" groups both
 // rejected and the auto-cancelled (lost-the-shift) bids.
 const BID_TABS = [
-  { value: 'accepted', label: 'Accepted' },
+  { value: 'accepted', label: 'Upcoming' },
   { value: 'pending', label: 'Pending' },
   { value: 'closed', label: 'Not selected' },
 ];
@@ -33,7 +30,7 @@ function single(embedded) {
   return Array.isArray(embedded) ? embedded[0] : embedded;
 }
 
-function BidShiftCard({ bid, onView }) {
+function BidShiftCard({ bid }) {
   const shift = single(bid.shifts);
   if (!shift) {
     return null;
@@ -41,53 +38,39 @@ function BidShiftCard({ bid, onView }) {
   const facility = single(shift.facility_profiles);
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium text-foreground">{shift.role_required}</h3>
-            <StatusBadge status={shift.status} />
-          </div>
-          <span className="font-mono text-sm font-semibold text-foreground">
-            {formatNaira(shift.pay_rate_naira)}
-          </span>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {facility?.facility_name ?? 'Facility'} · {shift.city}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {formatShiftRange(shift.start_time, shift.end_time)}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Bid: {BID_STATUS_LABELS[bid.status] ?? bid.status}
-        </p>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <Button size="sm" variant="outline" onClick={() => onView(shift.id)}>
-            View shift
-          </Button>
-          {bid.status === 'accepted' && (
-            <a
-              href={shiftIcsHref({
-                id: shift.id,
-                summary: `${shift.role_required} at ${facility?.facility_name ?? 'facility'}`,
-                startTime: shift.start_time,
-                endTime: shift.end_time,
-                location: shift.city,
-              })}
-              download="locumii-shift.ics"
-              className="text-sm text-primary underline-offset-4 hover:underline"
-            >
-              Add to calendar
-            </a>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-1.5">
+      <Link to={`/professional/shifts/${shift.id}`} className="block">
+        <ShiftCard
+          shift={shift}
+          badge
+          footer={
+            <span className="text-xs text-muted-foreground">
+              Application: {BID_STATUS_LABELS[bid.status] ?? bid.status}
+            </span>
+          }
+        />
+      </Link>
+      {bid.status === 'accepted' && (
+        <a
+          href={shiftIcsHref({
+            id: shift.id,
+            summary: `${shift.role_required} at ${facility?.facility_name ?? 'facility'}`,
+            startTime: shift.start_time,
+            endTime: shift.end_time,
+            location: shift.city,
+          })}
+          download="locumii-shift.ics"
+          className="inline-flex items-center gap-1 self-start pl-1 text-xs font-medium text-primary underline-offset-4 hover:underline"
+        >
+          <CalendarPlus className="size-3.5" aria-hidden="true" />
+          Add to calendar
+        </a>
+      )}
+    </div>
   );
 }
 
 function MyShifts() {
-  const navigate = useNavigate();
   const { bids, loading, error } = useProfessionalBids();
   const [activeTab, setActiveTab] = useState('accepted');
 
@@ -106,44 +89,47 @@ function MyShifts() {
       return aStart.localeCompare(bStart);
     });
 
-  function handleView(shiftId) {
-    navigate(`/professional/shifts/${shiftId}`);
-  }
-
   return (
     <PageContainer>
-        <PageHeader
-          title="Your shifts"
-          subtitle="Work you’ve been accepted for and the status of your bids."
-          actions={
-            <Button onClick={() => navigate('/professional/shifts')}>Browse shifts</Button>
-          }
-        />
+      <PageHeader
+        title="My Jobs"
+        subtitle="Shifts you’ve been accepted for and the status of your applications."
+      />
 
-        <div className="flex flex-wrap gap-2">
-          {BID_TABS.map((tab) => (
-            <Button
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+        {BID_TABS.map((tab) => {
+          const active = activeTab === tab.value;
+          return (
+            <button
               key={tab.value}
-              size="sm"
-              variant={activeTab === tab.value ? 'default' : 'outline'}
+              type="button"
               onClick={() => setActiveTab(tab.value)}
+              className={cn(
+                'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
+                active
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:text-foreground'
+              )}
             >
               {tab.label}
-            </Button>
-          ))}
-        </div>
+            </button>
+          );
+        })}
+      </div>
 
-        {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
-        {error && <p className="text-sm text-destructive">Could not load your shifts.</p>}
-        {!loading && !error && visibleBids.length === 0 && (
-          <EmptyState icon={CalendarX2}>No shifts to show here yet.</EmptyState>
-        )}
+      {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {error && <p className="text-sm text-destructive">Could not load your shifts.</p>}
+      {!loading && !error && visibleBids.length === 0 && (
+        <EmptyState icon={CalendarX2}>
+          Nothing here yet. Browse the Explore tab and apply to your first shift.
+        </EmptyState>
+      )}
 
-        <div className="flex flex-col gap-3">
-          {visibleBids.map((bid) => (
-            <BidShiftCard key={bid.id} bid={bid} onView={handleView} />
-          ))}
-        </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {visibleBids.map((bid) => (
+          <BidShiftCard key={bid.id} bid={bid} />
+        ))}
+      </div>
     </PageContainer>
   );
 }

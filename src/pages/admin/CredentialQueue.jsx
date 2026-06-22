@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import InitialsAvatar from '@/components/ui/InitialsAvatar';
+import VerifiedBadge from '@/components/profile/VerifiedBadge';
+import PageHeader from '@/components/layout/PageHeader';
 import { CREDENTIAL_DOC_TYPES, PROFESSIONAL_SPECIALTIES } from '@/constants/options';
 import { usePendingCredentials, useReviewCredential } from '@/hooks/useAdminCredentials';
 import PageContainer from '@/components/layout/PageContainer';
@@ -60,10 +63,7 @@ function CredentialQueue() {
 
   return (
     <PageContainer>
-        <div>
-          <h1 className="text-xl font-medium text-foreground">Credential review</h1>
-          <p className="text-sm text-muted-foreground">Documents awaiting approval.</p>
-        </div>
+        <PageHeader title="Credential review" subtitle="Documents awaiting approval." />
 
         {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
         {error && (
@@ -76,13 +76,20 @@ function CredentialQueue() {
         {groups.map((group) => (
           <Card key={group.professionalId}>
             <CardHeader>
-              <CardTitle className="text-base">{group.fullName}</CardTitle>
-              <CardDescription>
-                {group.specialty
-                  ? SPECIALTY_LABELS[group.specialty] ?? group.specialty
-                  : 'Professional'}
-                {group.isVerified ? ' · Verified' : ''}
-              </CardDescription>
+              <div className="flex items-center gap-3">
+                <InitialsAvatar name={group.fullName} size="md" />
+                <div className="min-w-0">
+                  <p className="truncate text-base font-semibold text-foreground">{group.fullName}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {group.specialty
+                        ? SPECIALTY_LABELS[group.specialty] ?? group.specialty
+                        : 'Professional'}
+                    </span>
+                    {group.isVerified && <VerifiedBadge verified />}
+                  </div>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {group.docs.map((doc) => (

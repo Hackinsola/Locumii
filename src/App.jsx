@@ -33,12 +33,13 @@ const FacilityMyProfile = lazy(() => import('@/pages/facility/MyProfile'))
 const FacilityTransactions = lazy(() => import('@/pages/facility/Transactions'))
 const DocumentUpload = lazy(() => import('@/pages/professional/DocumentUpload'))
 const Earnings = lazy(() => import('@/pages/professional/Earnings'))
+const Availability = lazy(() => import('@/pages/professional/Availability'))
+const WorkHistory = lazy(() => import('@/pages/professional/WorkHistory'))
 const MyProfile = lazy(() => import('@/pages/professional/MyProfile'))
 const ProfessionalMyShifts = lazy(() => import('@/pages/professional/MyShifts'))
 const Onboarding = lazy(() => import('@/pages/professional/Onboarding'))
 const ProfessionalProfile = lazy(() => import('@/pages/professional/ProfessionalProfile'))
 const ShiftDetail = lazy(() => import('@/pages/professional/ShiftDetail'))
-const ShiftFeed = lazy(() => import('@/pages/professional/ShiftFeed'))
 
 // Shown while a lazy page chunk is downloading. Minimal by design — a centered
 // spinner on the app background — so route transitions don't flash empty content.
@@ -204,13 +205,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* The standalone shift feed is now the Explore home; keep the old path as a
+            redirect so existing links/bookmarks still land somewhere sensible. */}
         <Route
           path="/professional/shifts"
-          element={
-            <ProtectedRoute allowedRoles={['professional']}>
-              <ShiftFeed />
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/professional/dashboard" replace />}
         />
         <Route
           path="/professional/profile"
@@ -225,6 +224,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['professional']}>
               <Earnings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professional/availability"
+          element={
+            <ProtectedRoute allowedRoles={['professional']}>
+              <Availability />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/professional/work-history"
+          element={
+            <ProtectedRoute allowedRoles={['professional']}>
+              <WorkHistory />
             </ProtectedRoute>
           }
         />

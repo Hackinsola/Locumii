@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import InitialsAvatar from '@/components/ui/InitialsAvatar';
+import VerifiedBadge from '@/components/profile/VerifiedBadge';
+import RatingStars from '@/components/profile/RatingStars';
+import FacilityShiftCard from '@/components/shifts/FacilityShiftCard';
+import EmptyState from '@/components/ui/EmptyState';
 import { PROFESSIONAL_SPECIALTIES } from '@/constants/options';
 import { useAcceptBid, useShiftBids } from '@/hooks/useBids';
 import { useShift } from '@/hooks/useShifts';
@@ -10,9 +16,7 @@ import { useConfirmCompletion, useShiftConfirmation } from '@/hooks/useShiftConf
 import { useShiftRating, useSubmitRating } from '@/hooks/useRatings';
 import { useReleasePayment } from '@/hooks/usePayments';
 import RatingForm from '@/components/ratings/RatingForm';
-import StatusBadge from '@/components/shifts/StatusBadge';
-import { formatShiftRange } from '@/utils/dateTime';
-import { formatNaira } from '@/utils/money';
+import { cn } from '@/lib/utils';
 import PageContainer from '@/components/layout/PageContainer';
 
 const SPECIALTY_LABELS = Object.fromEntries(
@@ -21,9 +25,13 @@ const SPECIALTY_LABELS = Object.fromEntries(
 const BID_STATUS_LABELS = {
   pending: 'Pending',
   accepted: 'Accepted',
-  rejected: 'Rejected',
+  rejected: 'Not selected',
   cancelled: 'Cancelled',
 };
+
+function single(embedded) {
+  return Array.isArray(embedded) ? embedded[0] : embedded;
+}
 
 function ManageBids() {
   const { shiftId } = useParams();
@@ -63,7 +71,7 @@ function ManageBids() {
     setActionError(null);
     const { error: acceptError } = await acceptBid(pendingAccept.id);
     if (acceptError) {
-      setActionError(acceptError.message ?? 'Could not accept this bid. Please try again.');
+      setActionError(acceptError.message ?? 'Could not accept this application. Please try again.');
       setPendingAccept(null);
       return;
     }
@@ -73,10 +81,7 @@ function ManageBids() {
   }
 
   function professionalName(bid) {
-    const professional = Array.isArray(bid.professional_profiles)
-      ? bid.professional_profiles[0]
-      : bid.professional_profiles;
-    return professional?.full_name ?? 'this professional';
+    return single(bid.professional_profiles)?.full_name ?? 'this professional';
   }
 
   async function handleConfirm() {
@@ -92,120 +97,140 @@ function ManageBids() {
     // Second confirmation triggers the payout (idempotent no-op otherwise).
     const { result } = await releasePayment(shiftId);
     if (result?.released || result?.alreadyReleased) {
-      setPayoutNote('Shift complete — payment released to the professional.');
+      setPayoutNote('Job complete — payment released to the professional.');
     } else if (result?.needsBank) {
-      setPayoutNote(
-        'Shift complete. The professional will be paid once they link their bank account.'
-      );
+      setPayoutNote('Job complete. The professional will be paid once they link their bank account.');
     }
   }
 
   return (
     <PageContainer>
-        <Button variant="outline" className="self-start" onClick={() => navigate('/facility/shifts')}>
-          Back to your shifts
-        </Button>
+      <button
+        type="button"
+        onClick={() => navigate('/facility/shifts')}
+        className="flex items-center gap-1.5 self-start text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" />
+        Jobs
+      </button>
 
-        {shift && (
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-medium text-foreground">{shift.role_required}</h1>
-              <StatusBadge status={shift.status} />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {formatShiftRange(shift.start_time, shift.end_time)} ·{' '}
-              <span className="font-mono">{formatNaira(shift.pay_rate_naira)}</span>
-            </p>
-          </div>
-        )}
+      {shift && <FacilityShiftCard shift={shift} />}
 
-        {!loading && !error && bids.length > 0 && (
-          <p className="text-sm text-muted-foreground">
-            {bids.length} {bids.length === 1 ? 'professional has' : 'professionals have'} bid on this
-            shift.
-          </p>
-        )}
-
-        {shift?.status === 'in_progress' &&
-          (confirmation?.facility_confirmed_at ? (
-            <p className="text-sm text-muted-foreground">
-              You confirmed completion — awaiting the professional.
-            </p>
-          ) : (
-            <Button className="self-start" onClick={handleConfirm} disabled={confirming}>
-              {confirming ? 'Confirming…' : 'Confirm completion'}
-            </Button>
-          ))}
-        {shift?.status === 'completed' && (
-          <p className="text-sm font-medium text-foreground">Shift completed.</p>
-        )}
-        {payoutNote && <p className="text-sm text-muted-foreground">{payoutNote}</p>}
-
-        {shift?.status === 'completed' && acceptedProfessionalId && (
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-foreground">Rate the professional</span>
-            {rating ? (
+      {/* Completion / rating lifecycle */}
+      {shift?.status === 'in_progress' && (
+        <Card>
+          <CardContent>
+            {confirmation?.facility_confirmed_at ? (
               <p className="text-sm text-muted-foreground">
-                You rated this professional {rating.score}/5.
+                You confirmed completion — awaiting the professional.
               </p>
             ) : (
-              <RatingForm onSubmit={handleSubmitRating} submitting={ratingSubmitting} />
+              <Button onClick={handleConfirm} disabled={confirming}>
+                {confirming ? 'Confirming…' : 'Confirm completion'}
+              </Button>
             )}
-            {ratingError && <p className="text-sm text-destructive">{ratingError}</p>}
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      )}
+      {shift?.status === 'completed' && (
+        <Card>
+          <CardContent className="flex flex-col gap-2">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-status-success">
+              <CheckCircle2 className="size-4" aria-hidden="true" /> Job completed.
+            </p>
+            {acceptedProfessionalId && (
+              <>
+                <span className="text-sm font-medium text-foreground">Rate the professional</span>
+                {rating ? (
+                  <p className="text-sm text-muted-foreground">
+                    You rated this professional {rating.score}/5.
+                  </p>
+                ) : (
+                  <RatingForm onSubmit={handleSubmitRating} submitting={ratingSubmitting} />
+                )}
+                {ratingError && <p className="text-sm text-destructive">{ratingError}</p>}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+      {payoutNote && <p className="text-sm text-muted-foreground">{payoutNote}</p>}
 
-        {loading && <p className="text-sm text-muted-foreground">Loading bids…</p>}
-        {error && <p className="text-sm text-destructive">Could not load bids.</p>}
-        {!loading && !error && bids.length === 0 && (
-          <p className="text-sm text-muted-foreground">No bids on this shift yet.</p>
-        )}
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
+      {/* Applicants */}
+      <div className="flex items-center gap-2">
+        <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+        <h2 className="text-sm font-bold text-foreground">
+          {bids.length} application{bids.length === 1 ? '' : 's'}
+        </h2>
+      </div>
 
-        <div className="flex flex-col gap-3">
-          {bids.map((bid) => {
-            const professional = Array.isArray(bid.professional_profiles)
-              ? bid.professional_profiles[0]
-              : bid.professional_profiles;
-            return (
-              <Card key={bid.id}>
-                <CardContent className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/professionals/${bid.professional_id}`)}
-                      className="text-sm font-medium text-foreground underline-offset-2 hover:underline"
-                    >
-                      {professional?.full_name ?? 'Professional'}
-                      {professional?.is_verified ? ' · Verified' : ''}
-                    </button>
-                    <p className="text-sm text-muted-foreground">
-                      {professional?.specialty
-                        ? SPECIALTY_LABELS[professional.specialty] ?? professional.specialty
-                        : 'Professional'}{' '}
-                      · {BID_STATUS_LABELS[bid.status] ?? bid.status}
-                    </p>
+      {loading && <p className="text-sm text-muted-foreground">Loading applications…</p>}
+      {error && <p className="text-sm text-destructive">Could not load applications.</p>}
+      {!loading && !error && bids.length === 0 && (
+        <EmptyState icon={Users}>No applications on this job yet.</EmptyState>
+      )}
+      {actionError && <p className="text-sm text-destructive">{actionError}</p>}
+
+      <div className="flex flex-col gap-3">
+        {bids.map((bid) => {
+          const professional = single(bid.professional_profiles);
+          return (
+            <Card key={bid.id}>
+              <CardContent className="flex items-center gap-3">
+                <InitialsAvatar name={professional?.full_name} size="md" />
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/professionals/${bid.professional_id}`)}
+                    className="block truncate text-left text-sm font-semibold text-foreground underline-offset-2 hover:underline"
+                  >
+                    {professional?.full_name ?? 'Professional'}
+                  </button>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {professional?.specialty
+                      ? SPECIALTY_LABELS[professional.specialty] ?? professional.specialty
+                      : 'Professional'}
+                  </p>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <VerifiedBadge verified={professional?.is_verified} />
+                    {professional?.avg_rating != null && (
+                      <RatingStars value={professional.avg_rating} showNumber />
+                    )}
                   </div>
-                  {shiftOpen && bid.status === 'pending' && (
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  {shiftOpen && bid.status === 'pending' ? (
                     <Button size="sm" onClick={() => setPendingAccept(bid)} disabled={accepting}>
                       Accept
                     </Button>
+                  ) : (
+                    <span
+                      className={cn(
+                        'rounded-full px-2 py-0.5 text-xs font-medium',
+                        bid.status === 'accepted'
+                          ? 'bg-status-success-bg text-status-success'
+                          : 'bg-muted text-muted-foreground'
+                      )}
+                    >
+                      {BID_STATUS_LABELS[bid.status] ?? bid.status}
+                    </span>
                   )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
       <ConfirmModal
         isOpen={Boolean(pendingAccept)}
-        title="Accept this bid?"
+        title="Accept this application?"
         message={
           pendingAccept
-            ? `Accepting ${professionalName(pendingAccept)} will decline all other bids on this shift.`
+            ? `Accepting ${professionalName(pendingAccept)} will decline all other applications on this job.`
             : ''
         }
-        confirmLabel="Accept bid"
+        confirmLabel="Accept"
         busy={accepting}
         onConfirm={handleConfirmAccept}
         onCancel={() => setPendingAccept(null)}

@@ -90,7 +90,9 @@
     --brand-accent-hover: #b87a08;
     --brand-accent-light: #fdf3dc;
 
-    --background: #ffffff;
+    /* Page surface — the LAI soft near-white. Cards stay pure white (--card) so they
+       lift gently above the page; recessed panels use --muted (a touch greyer). */
+    --background: #fcfcfc;
     --foreground: #1a1a1a;
     --card: #ffffff;
     --card-foreground: #1a1a1a;
@@ -102,7 +104,8 @@
     --primary-foreground: #1a1a1a;
     --secondary: #f4f4f5;
     --secondary-foreground: #1a1a1a;
-    --muted: #fafafa;
+    /* Recessed panels/chips (LAI grey ~#f5f5f5) — sits just below the page surface. */
+    --muted: #f4f4f5;
     --muted-foreground: #4b5563;
     --accent: #f4f4f5;
     --accent-foreground: #1a1a1a;

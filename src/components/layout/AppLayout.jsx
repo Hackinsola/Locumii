@@ -87,13 +87,8 @@ function AppLayout() {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div
-      className="min-h-screen bg-muted/40"
-      style={{
-        backgroundImage: 'radial-gradient(rgba(0,0,0,0.045) 1px, transparent 1px)',
-        backgroundSize: '24px 24px',
-      }}
-    >
+    <div className="min-h-screen bg-background">
+
       <Sidebar links={links} roleLabel={role} onSignOut={handleSignOut} />
 
       {/* Main column — offset for the fixed sidebar on desktop. */}

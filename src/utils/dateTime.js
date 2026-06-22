@@ -45,7 +45,7 @@ export function formatDate(iso) {
   }
   try {
     return dateFormat.format(new Date(iso));
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -56,7 +56,7 @@ export function formatDateTime(iso) {
   }
   try {
     return dateTimeFormat.format(new Date(iso));
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -68,7 +68,7 @@ export function formatShiftRange(startIso, endIso) {
   }
   try {
     return `${dateTimeFormat.format(new Date(startIso))} – ${timeFormat.format(new Date(endIso))}`;
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -80,7 +80,7 @@ export function formatShiftDate(iso) {
   }
   try {
     return shiftDateFormat.format(new Date(iso));
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -92,7 +92,7 @@ export function formatLongDate(iso) {
   }
   try {
     return longDateFormat.format(new Date(iso));
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -105,7 +105,7 @@ export function formatTimeRange(startIso, endIso) {
   }
   try {
     return `${timeFormat.format(new Date(startIso))} – ${timeFormat.format(new Date(endIso))}`;
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -150,7 +150,7 @@ export function formatCountdown(iso) {
       return `Starts in ${hours} hr${hours === 1 ? '' : 's'}${minutes > 0 ? ` ${minutes} min` : ''}`;
     }
     return `Starts in ${minutes} min`;
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -179,7 +179,7 @@ export function formatRelativeTime(iso) {
       return `${days} ${days === 1 ? 'day' : 'days'} ago`;
     }
     return formatDate(iso);
-  } catch (error) {
+  } catch {
     return '';
   }
 }

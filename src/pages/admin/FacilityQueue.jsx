@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import InitialsAvatar from '@/components/ui/InitialsAvatar';
+import VerifiedBadge from '@/components/profile/VerifiedBadge';
+import PageHeader from '@/components/layout/PageHeader';
 import { FACILITY_TYPES } from '@/constants/options';
 import { usePendingFacilities, useVerifyFacility } from '@/hooks/useAdmin';
 import { formatDate } from '@/utils/dateTime';
@@ -33,15 +36,15 @@ function FacilityQueue() {
 
   return (
     <PageContainer>
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h1 className="text-xl font-medium text-foreground">Facility verification</h1>
-            <p className="text-sm text-muted-foreground">Facilities awaiting manual verification.</p>
-          </div>
-          <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>
-            Dashboard
-          </Button>
-        </div>
+        <PageHeader
+          title="Facility verification"
+          subtitle="Clinics awaiting manual verification."
+          actions={
+            <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>
+              Dashboard
+            </Button>
+          }
+        />
 
         {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
         {error && <p className="text-sm text-destructive">Could not load the facility queue.</p>}
@@ -53,13 +56,23 @@ function FacilityQueue() {
         {facilities.map((facility) => (
           <Card key={facility.user_id}>
             <CardHeader>
-              <CardTitle className="text-base">{facility.facility_name}</CardTitle>
+              <div className="flex items-center gap-3">
+                <InitialsAvatar name={facility.facility_name} size="md" />
+                <div className="min-w-0">
+                  <p className="truncate text-base font-semibold text-foreground">
+                    {facility.facility_name}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {FACILITY_TYPE_LABELS[facility.facility_type] ?? facility.facility_type} ·{' '}
+                      {facility.city}
+                    </span>
+                    <VerifiedBadge pending />
+                  </div>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground">
-                {FACILITY_TYPE_LABELS[facility.facility_type] ?? facility.facility_type} ·{' '}
-                {facility.city}
-              </p>
               <p className="text-sm text-muted-foreground">CAC: {facility.cac_number}</p>
               <p className="text-sm text-muted-foreground">
                 {facility.contact_name}

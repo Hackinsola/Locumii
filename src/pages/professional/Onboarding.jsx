@@ -1,17 +1,56 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Activity,
+  ArrowRight,
+  Check,
+  FlaskConical,
+  Phone,
+  Pill,
+  ShieldCheck,
+  Stethoscope,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { FCT_CITIES, PROFESSIONAL_SPECIALTIES } from '@/constants/options';
-import { COUNCIL_REG_HINTS, validateCouncilRegNumber } from '@/utils/validators';
-import { useSaveProfessionalProfile } from '@/hooks/useProfile';
+import SelectChip from '@/components/ui/SelectChip';
+import SectionLabel from '@/components/ui/SectionLabel';
+import Logo from '@/components/layout/Logo';
+import Reveal from '@/components/layout/Reveal';
 import PageContainer from '@/components/layout/PageContainer';
+import { FCT_CITIES, PROFESSIONAL_SPECIALTIES } from '@/constants/options';
+import {
+  COUNCIL_REG_HINTS,
+  validateCouncilRegNumber,
+  validateNigerianPhone,
+} from '@/utils/validators';
+import { useSaveProfessionalProfile } from '@/hooks/useProfile';
+import { cn } from '@/lib/utils';
 
 const SPECIALTY_VALUES = PROFESSIONAL_SPECIALTIES.map((item) => item.value);
-const selectClasses =
-  'h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20';
+const SPECIALTY_ICONS = {
+  doctor: Stethoscope,
+  nurse: Activity,
+  pharmacist: Pill,
+  medical_lab_scientist: FlaskConical,
+};
+
+// Quick-start bio templates (the LAI "select a template or write your own" chips).
+const BIO_TEMPLATES = [
+  {
+    label: '🩺 Experienced',
+    text: 'Experienced clinician with a passion for patient care. Skilled in managing acute and chronic conditions, with a calm and dependable bedside manner.',
+  },
+  {
+    label: '⭐ Flexible & reliable',
+    text: 'Flexible and reliable locum, comfortable in fast-paced clinic environments. Strong communicator with a track record of punctuality and professionalism.',
+  },
+  {
+    label: '🎓 Fresh graduate',
+    text: 'Recently qualified and eager to gain broad clinical experience. A quick learner with a strong work ethic and excellent bedside manner.',
+  },
+];
 
 function Onboarding() {
   const navigate = useNavigate();
@@ -20,16 +59,21 @@ function Onboarding() {
     fullName: '',
     specialty: '',
     councilRegNumber: '',
+    phone: '',
     yearsExperience: '',
     bio: '',
     preferredCities: [],
   });
   const [errors, setErrors] = useState({});
+  const [activeTemplate, setActiveTemplate] = useState(null);
   const [submitError, setSubmitError] = useState(null);
 
-  function handleChange(event) {
-    const { name, value } = event.target;
+  function update(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function handleChange(event) {
+    update(event.target.name, event.target.value);
   }
 
   function toggleCity(city) {
@@ -41,13 +85,18 @@ function Onboarding() {
     }));
   }
 
+  function applyTemplate(template) {
+    setActiveTemplate(template.label);
+    update('bio', template.text);
+  }
+
   function validate() {
     const next = {};
     if (form.fullName.trim().length === 0) {
       next.fullName = 'Enter your full name.';
     }
     if (!SPECIALTY_VALUES.includes(form.specialty)) {
-      next.specialty = 'Select your specialty.';
+      next.specialty = 'Select your profession.';
     }
     if (form.councilRegNumber.trim().length === 0) {
       next.councilRegNumber = 'Enter your council registration number.';
@@ -57,12 +106,15 @@ function Onboarding() {
     ) {
       next.councilRegNumber = `Enter a valid registration number (format: ${COUNCIL_REG_HINTS[form.specialty]}).`;
     }
+    if (!validateNigerianPhone(form.phone.replace(/\s+/g, ''))) {
+      next.phone = 'Enter a valid Nigerian phone number.';
+    }
     const years = Number(form.yearsExperience);
     if (!Number.isInteger(years) || years < 0) {
       next.yearsExperience = 'Enter your years of experience as a whole number.';
     }
     if (form.preferredCities.length === 0) {
-      next.preferredCities = 'Choose at least one preferred location.';
+      next.preferredCities = 'Choose at least one preferred area.';
     }
     return next;
   }
@@ -79,6 +131,7 @@ function Onboarding() {
       fullName: form.fullName.trim(),
       specialty: form.specialty,
       councilRegNumber: form.councilRegNumber.trim(),
+      phone: form.phone.replace(/\s+/g, '').trim(),
       yearsExperience: Number(form.yearsExperience),
       bio: form.bio.trim(),
       preferredCities: form.preferredCities,
@@ -87,134 +140,226 @@ function Onboarding() {
       setSubmitError(error.message ?? 'Could not save your profile. Please try again.');
       return;
     }
-    // Continue to the document-upload step of onboarding.
     navigate('/professional/documents');
   }
 
+  const regHint = form.specialty ? COUNCIL_REG_HINTS[form.specialty] : 'e.g. MDC/2024/12345';
+
   return (
-    <PageContainer>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Complete your professional profile</CardTitle>
-          <CardDescription>
-            Tell facilities who you are. You can upload your credentials in the next step.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="fullName" className="text-sm font-medium text-foreground">Full name</label>
+    <div className="min-h-screen pb-28">
+      {/* Branded header with a soft green glow */}
+      <div className="relative overflow-hidden">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 left-1/2 size-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl"
+        />
+        <div className="relative flex flex-col items-center gap-3 px-4 pt-10 pb-2 text-center">
+          <Logo />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Complete your profile</h1>
+            <p className="text-sm text-muted-foreground">Tell facilities who you are.</p>
+          </div>
+        </div>
+      </div>
+
+      <PageContainer>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+          {/* Profession */}
+          <Reveal className="flex flex-col gap-2">
+            <SectionLabel>I am a…</SectionLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {PROFESSIONAL_SPECIALTIES.map((item) => {
+                const Icon = SPECIALTY_ICONS[item.value] ?? Stethoscope;
+                const selected = form.specialty === item.value;
+                return (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => update('specialty', item.value)}
+                    className={cn(
+                      'relative flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-all duration-150 active:scale-[0.98]',
+                      selected
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-card hover:border-foreground/30'
+                    )}
+                  >
+                    {selected && (
+                      <span className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <Check className="size-3" aria-hidden="true" />
+                      </span>
+                    )}
+                    <span
+                      className={cn(
+                        'flex size-11 items-center justify-center rounded-xl',
+                        selected ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
+                      )}
+                    >
+                      <Icon className="size-5" aria-hidden="true" />
+                    </span>
+                    <span
+                      className={cn(
+                        'text-sm font-medium',
+                        selected ? 'text-primary' : 'text-foreground'
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {errors.specialty && <p className="text-sm text-destructive">{errors.specialty}</p>}
+          </Reveal>
+
+          {/* Personal details */}
+          <Reveal className="flex flex-col gap-4" delay={60}>
+            <SectionLabel>Your details</SectionLabel>
+            <Field label="Full name" error={errors.fullName}>
               <Input
-                id="fullName"
                 name="fullName"
                 value={form.fullName}
                 onChange={handleChange}
+                placeholder="Dr. Jane Doe"
                 aria-invalid={Boolean(errors.fullName)}
               />
-              {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="specialty" className="text-sm font-medium text-foreground">Specialty</label>
-              <select
-                id="specialty"
-                name="specialty"
-                value={form.specialty}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.specialty)}
-                className={selectClasses}
-              >
-                <option value="" disabled>
-                  Select your specialty
-                </option>
-                {PROFESSIONAL_SPECIALTIES.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-              {errors.specialty && <p className="text-sm text-destructive">{errors.specialty}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="councilRegNumber" className="text-sm font-medium text-foreground">
-                Council registration number
-              </label>
+            </Field>
+            <Field label="Phone number" error={errors.phone}>
+              <div className="relative">
+                <Phone className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <Input
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="0801 234 5678"
+                  className="pl-9"
+                  aria-invalid={Boolean(errors.phone)}
+                />
+              </div>
+            </Field>
+            <Field label="Years of experience" error={errors.yearsExperience}>
               <Input
-                id="councilRegNumber"
-                name="councilRegNumber"
-                value={form.councilRegNumber}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.councilRegNumber)}
-              />
-              {errors.councilRegNumber && (
-                <p className="text-sm text-destructive">{errors.councilRegNumber}</p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="yearsExperience" className="text-sm font-medium text-foreground">
-                Years of experience
-              </label>
-              <Input
-                id="yearsExperience"
                 name="yearsExperience"
                 type="number"
                 min="0"
                 step="1"
                 value={form.yearsExperience}
                 onChange={handleChange}
+                placeholder="e.g. 5"
                 aria-invalid={Boolean(errors.yearsExperience)}
               />
-              {errors.yearsExperience && (
-                <p className="text-sm text-destructive">{errors.yearsExperience}</p>
-              )}
+            </Field>
+          </Reveal>
+
+          {/* Verification */}
+          <Reveal delay={120}>
+            <Card className="border-primary/30">
+              <CardContent className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-primary/15 text-primary">
+                    <ShieldCheck className="size-4" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">License verification</p>
+                    <p className="text-xs text-muted-foreground">
+                      Confirm your council registration to get verified.
+                    </p>
+                  </div>
+                </div>
+                <Field label="Council registration number" error={errors.councilRegNumber}>
+                  <Input
+                    name="councilRegNumber"
+                    value={form.councilRegNumber}
+                    onChange={handleChange}
+                    placeholder={regHint}
+                    aria-invalid={Boolean(errors.councilRegNumber)}
+                  />
+                </Field>
+              </CardContent>
+            </Card>
+          </Reveal>
+
+          {/* Preferred areas */}
+          <Reveal className="flex flex-col gap-2" delay={180}>
+            <SectionLabel>Preferred areas</SectionLabel>
+            <p className="text-sm text-muted-foreground">Where do you want to pick up shifts?</p>
+            <div className="flex flex-wrap gap-2">
+              {FCT_CITIES.map((city) => (
+                <SelectChip
+                  key={city}
+                  selected={form.preferredCities.includes(city)}
+                  onClick={() => toggleCity(city)}
+                >
+                  {city}
+                </SelectChip>
+              ))}
             </div>
+            {errors.preferredCities && (
+              <p className="text-sm text-destructive">{errors.preferredCities}</p>
+            )}
+          </Reveal>
 
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium text-foreground">Preferred locations (FCT)</span>
-              <div className="grid grid-cols-2 gap-2">
-                {FCT_CITIES.map((city) => (
-                  <label
-                    key={city}
-                    className="flex items-center gap-2 text-sm text-foreground"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={form.preferredCities.includes(city)}
-                      onChange={() => toggleCity(city)}
-                    />
-                    {city}
-                  </label>
-                ))}
-              </div>
-              {errors.preferredCities && (
-                <p className="text-sm text-destructive">{errors.preferredCities}</p>
-              )}
+          {/* Bio */}
+          <Reveal className="flex flex-col gap-2" delay={240}>
+            <SectionLabel>About you</SectionLabel>
+            <p className="text-sm text-muted-foreground">Select a template or write your own.</p>
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+              {BIO_TEMPLATES.map((template) => (
+                <SelectChip
+                  key={template.label}
+                  selected={activeTemplate === template.label}
+                  onClick={() => applyTemplate(template)}
+                  className="shrink-0"
+                >
+                  {template.label}
+                </SelectChip>
+              ))}
             </div>
+            <Textarea
+              name="bio"
+              value={form.bio}
+              onChange={(event) => {
+                setActiveTemplate(null);
+                handleChange(event);
+              }}
+              placeholder="Tell clinics about yourself…"
+              rows={4}
+            />
+          </Reveal>
 
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="bio" className="text-sm font-medium text-foreground">
-                Short bio <span className="text-muted-foreground">(optional)</span>
-              </label>
-              <Textarea
-                id="bio"
-                name="bio"
-                value={form.bio}
-                onChange={handleChange}
-                placeholder="A sentence or two about your experience."
-              />
-            </div>
+          {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+        </form>
+      </PageContainer>
 
-            {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+      {/* Sticky bottom CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 px-4 py-3 backdrop-blur">
+        <div className="mx-auto flex max-w-4xl items-center gap-3">
+          <p className="hidden flex-1 text-sm text-muted-foreground sm:block">
+            You can upload your documents next.
+          </p>
+          <Button
+            type="button"
+            size="lg"
+            className="w-full sm:w-auto"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? 'Saving…' : 'Continue'}
+            {!loading && <ArrowRight className="size-4" aria-hidden="true" />}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-            <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
-              {loading ? 'Saving…' : 'Save profile'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </PageContainer>
+// Labelled field wrapper with an inline error message.
+function Field({ label, error, children }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-sm font-medium text-foreground">{label}</span>
+      {children}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+    </div>
   );
 }
 

@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Briefcase, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import StatusBadge from '@/components/shifts/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
+import FacilityShiftCard from '@/components/shifts/FacilityShiftCard';
 import PageHeader from '@/components/layout/PageHeader';
-import { Briefcase } from 'lucide-react';
+import PageContainer from '@/components/layout/PageContainer';
 import { useCancelShift, useFacilityShifts } from '@/hooks/useShifts';
 import { formatShiftRange } from '@/utils/dateTime';
-import { formatNaira } from '@/utils/money';
-import PageContainer from '@/components/layout/PageContainer';
+import { cn } from '@/lib/utils';
 
 // Cancelled shifts are intentionally omitted — the rows stay in the DB (they hold
 // the payment + refund record) but are hidden from this everyday view.
@@ -36,7 +35,7 @@ function MyShifts() {
     setCancelError(null);
     const { error: cancelErr } = await cancelShift(pendingCancel.id);
     if (cancelErr) {
-      setCancelError(cancelErr.message ?? 'Could not cancel this shift.');
+      setCancelError(cancelErr.message ?? 'Could not cancel this job.');
       setPendingCancel(null);
       return;
     }
@@ -46,82 +45,82 @@ function MyShifts() {
 
   return (
     <PageContainer>
-        <PageHeader
-          title="Your shifts"
-          subtitle="Manage bids on the shifts you’ve posted."
-          actions={<Button onClick={() => navigate('/facility/post-shift')}>Post a shift</Button>}
-        />
+      <PageHeader
+        title="Jobs"
+        subtitle="Manage applications on the jobs you’ve posted."
+        actions={
+          <Button onClick={() => navigate('/facility/post-shift')}>
+            <Plus className="size-4" aria-hidden="true" />
+            New job
+          </Button>
+        }
+      />
 
-        <div className="flex flex-wrap gap-2">
-          {STATUS_TABS.map((tab) => (
-            <Button
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+        {STATUS_TABS.map((tab) => {
+          const active = activeTab === tab.value;
+          return (
+            <button
               key={tab.value}
-              size="sm"
-              variant={activeTab === tab.value ? 'default' : 'outline'}
+              type="button"
               onClick={() => setActiveTab(tab.value)}
+              className={cn(
+                'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
+                active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
+              )}
             >
               {tab.label}
-            </Button>
-          ))}
-        </div>
+            </button>
+          );
+        })}
+      </div>
 
-        {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
-        {error && <p className="text-sm text-destructive">Could not load your shifts.</p>}
-        {!loading && !error && visibleShifts.length === 0 && (
-          <EmptyState icon={Briefcase}>No {activeLabel.toLowerCase()} shifts.</EmptyState>
-        )}
-        {cancelError && <p className="text-sm text-destructive">{cancelError}</p>}
+      {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {error && <p className="text-sm text-destructive">Could not load your jobs.</p>}
+      {!loading && !error && visibleShifts.length === 0 && (
+        <EmptyState icon={Briefcase}>No {activeLabel.toLowerCase()} jobs.</EmptyState>
+      )}
+      {cancelError && <p className="text-sm text-destructive">{cancelError}</p>}
 
-        <div className="flex flex-col gap-3">
-          {visibleShifts.map((shift) => (
-            <Card key={shift.id}>
-              <CardContent className="flex flex-col gap-1">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium text-foreground">{shift.role_required}</h3>
-                    <StatusBadge status={shift.status} />
-                  </div>
-                  <span className="font-mono text-sm font-semibold text-foreground">
-                    {formatNaira(shift.pay_rate_naira)}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">{shift.city}</p>
-                <p className="text-sm text-muted-foreground">
-                  {formatShiftRange(shift.start_time, shift.end_time)}
-                </p>
-                <div className="mt-2 flex gap-2">
+      <div className="grid gap-3 md:grid-cols-2">
+        {visibleShifts.map((shift) => (
+          <FacilityShiftCard
+            key={shift.id}
+            shift={shift}
+            footer={
+              <div className="mt-1 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(`/facility/shifts/${shift.id}/bids`)}
+                >
+                  Applications
+                </Button>
+                {shift.status === 'open' && (
                   <Button
                     size="sm"
-                    variant="outline"
-                    onClick={() => navigate(`/facility/shifts/${shift.id}/bids`)}
+                    variant="destructive"
+                    onClick={() => setPendingCancel(shift)}
+                    disabled={cancelling}
                   >
-                    Manage bids
+                    Cancel
                   </Button>
-                  {shift.status === 'open' && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => setPendingCancel(shift)}
-                      disabled={cancelling}
-                    >
-                      Cancel
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                )}
+              </div>
+            }
+          />
+        ))}
+      </div>
 
       <ConfirmModal
         isOpen={Boolean(pendingCancel)}
-        title="Cancel this shift?"
+        title="Cancel this job?"
         message={
           pendingCancel
             ? `${pendingCancel.role_required} on ${formatShiftRange(pendingCancel.start_time, pendingCancel.end_time)} will be cancelled and removed from the feed. You'll be refunded what you paid, minus Paystack's fees.`
             : ''
         }
-        confirmLabel="Cancel shift"
+        confirmLabel="Cancel job"
         isDestructive
         busy={cancelling}
         onConfirm={handleConfirmCancel}

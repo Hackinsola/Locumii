@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import InitialsAvatar from '@/components/ui/InitialsAvatar';
+import PageHeader from '@/components/layout/PageHeader';
 import { useUsers, useUpdateUserStatus, useCompletedShiftCounts } from '@/hooks/useAdmin';
 import { formatDate } from '@/utils/dateTime';
 import PageContainer from '@/components/layout/PageContainer';
@@ -106,15 +108,15 @@ function UserManager() {
 
   return (
     <PageContainer>
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h1 className="text-xl font-medium text-foreground">Users</h1>
-            <p className="text-sm text-muted-foreground">Search, filter, and manage accounts.</p>
-          </div>
-          <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>
-            Dashboard
-          </Button>
-        </div>
+        <PageHeader
+          title="Users"
+          subtitle="Search, filter, and manage accounts."
+          actions={
+            <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>
+              Dashboard
+            </Button>
+          }
+        />
 
         <div className="flex flex-col gap-3">
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
@@ -163,22 +165,29 @@ function UserManager() {
           {users.map((user) => (
             <Card key={user.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-col gap-0.5">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                    {displayName(user)}
-                    {isFlagged(user) && (
-                      <Flag
-                        className="size-4 fill-current text-destructive"
-                        aria-label="Low rating — review"
-                      />
-                    )}
-                  </span>
-                  <span className="text-sm text-muted-foreground">{user.email}</span>
-                  <span className="text-xs text-muted-foreground">
-                    <span className="capitalize">{user.role}</span> ·{' '}
-                    <span className="capitalize">{user.status}</span> · joined{' '}
-                    {formatDate(user.created_at)}
-                  </span>
+                <div className="flex min-w-0 items-center gap-3">
+                  <InitialsAvatar
+                    name={displayName(user) === '—' ? user.email : displayName(user)}
+                    size="md"
+                    tone={user.status === 'suspended' ? 'neutral' : 'brand'}
+                  />
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                      {displayName(user)}
+                      {isFlagged(user) && (
+                        <Flag
+                          className="size-4 fill-current text-destructive"
+                          aria-label="Low rating — review"
+                        />
+                      )}
+                    </span>
+                    <span className="truncate text-sm text-muted-foreground">{user.email}</span>
+                    <span className="text-xs text-muted-foreground">
+                      <span className="capitalize">{user.role}</span> ·{' '}
+                      <span className="capitalize">{user.status}</span> · joined{' '}
+                      {formatDate(user.created_at)}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {user.role !== 'admin' && (

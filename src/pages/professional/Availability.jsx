@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 function Availability() {
   const navigate = useNavigate();
   const { userId } = useAuth();
-  const { profile, loading } = useProfessionalProfile(userId);
+  const { profile, loading, error: profileError } = useProfessionalProfile(userId);
   const { saveAvailability, loading: saving } = useSaveAvailability();
 
   const [available, setAvailable] = useState(true);
@@ -56,6 +56,16 @@ function Availability() {
 
   async function handleSave() {
     setError(null);
+    setSaved(false);
+
+    for (const day of WEEK_DAYS) {
+      const value = schedule[day.key];
+      if (value.on && value.start >= value.end) {
+        setError(`Invalid time window for ${day.label}: start time must be before end time.`);
+        return;
+      }
+    }
+
     const { error: saveError } = await saveAvailability({
       availableForLocum: available,
       availability: schedule,
@@ -80,7 +90,7 @@ function Availability() {
           Profile
         </button>
         <h1 className="text-base font-bold text-foreground">Availability</h1>
-        <Button size="sm" onClick={handleSave} disabled={saving || loading}>
+        <Button size="sm" onClick={handleSave} disabled={saving || loading || profileError}>
           {saving ? 'Saving…' : 'Save'}
         </Button>
       </div>
@@ -97,7 +107,14 @@ function Availability() {
               Turn off to hide your profile from job listings.
             </p>
           </div>
-          <Toggle checked={available} onChange={setAvailable} label="Available for locum" />
+          <Toggle
+            checked={available}
+            onChange={(value) => {
+              setAvailable(value);
+              setSaved(false);
+            }}
+            label="Available for locum"
+          />
         </CardContent>
       </Card>
 
@@ -171,7 +188,7 @@ function Availability() {
       {error && <p className="text-sm text-destructive">{error}</p>}
       {saved && <p className="text-sm text-status-success">Availability saved.</p>}
 
-      <Button size="lg" className="w-full" onClick={handleSave} disabled={saving || loading}>
+      <Button size="lg" className="w-full" onClick={handleSave} disabled={saving || loading || profileError}>
         {saving ? 'Saving…' : 'Save availability'}
       </Button>
     </PageContainer>

@@ -106,7 +106,7 @@ function Onboarding() {
     ) {
       next.councilRegNumber = `Enter a valid registration number (format: ${COUNCIL_REG_HINTS[form.specialty]}).`;
     }
-    if (!validateNigerianPhone(form.phone)) {
+    if (!validateNigerianPhone(form.phone.replace(/\s+/g, ''))) {
       next.phone = 'Enter a valid Nigerian phone number.';
     }
     const years = Number(form.yearsExperience);
@@ -131,7 +131,7 @@ function Onboarding() {
       fullName: form.fullName.trim(),
       specialty: form.specialty,
       councilRegNumber: form.councilRegNumber.trim(),
-      phone: form.phone.trim(),
+      phone: form.phone.replace(/\s+/g, '').trim(),
       yearsExperience: Number(form.yearsExperience),
       bio: form.bio.trim(),
       preferredCities: form.preferredCities,

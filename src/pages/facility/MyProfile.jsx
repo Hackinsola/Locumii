@@ -22,7 +22,7 @@ import VerifiedBadge from '@/components/profile/VerifiedBadge';
 import { FACILITY_TYPES, FCT_CITIES } from '@/constants/options';
 import { validateNigerianPhone } from '@/utils/validators';
 import { useOwnFacilityProfile, useSaveFacilityProfile } from '@/hooks/useProfile';
-import { useFacilityShifts } from '@/hooks/useShifts';
+import { useFacilityShifts, useFacilityShiftStats } from '@/hooks/useShifts';
 import { useAuth } from '@/hooks/useAuth';
 import { SUPPORT_EMAIL_HREF, SUPPORT_WHATSAPP_URL } from '@/constants/support';
 import PageContainer from '@/components/layout/PageContainer';
@@ -77,6 +77,7 @@ function MyProfile() {
   const { userId } = useAuth();
   const { profile, loading, error, refetch } = useOwnFacilityProfile(userId);
   const { shifts } = useFacilityShifts();
+  const { stats } = useFacilityShiftStats();
   const { saveProfile, loading: saving } = useSaveFacilityProfile();
 
   const [editing, setEditing] = useState(false);
@@ -85,7 +86,7 @@ function MyProfile() {
   const [saveError, setSaveError] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
 
-  const filledCount = shifts.filter((s) => s.status === 'filled' || s.status === 'completed').length;
+  const filledCount = stats.filled + stats.completed;
   const ratingValue =
     profile?.avg_rating !== null && profile?.avg_rating !== undefined
       ? Number(profile.avg_rating).toFixed(1)
@@ -190,7 +191,7 @@ function MyProfile() {
           {/* Stats */}
           <Card>
             <CardContent className="grid grid-cols-3 divide-x divide-border">
-              <StatTile icon={Briefcase} value={shifts.length} label="Jobs" />
+              <StatTile icon={Briefcase} value={stats.total} label="Jobs" />
               <StatTile icon={CheckCircle2} value={filledCount} label="Filled" />
               <StatTile icon={Star} value={ratingValue} label="Rating" />
             </CardContent>

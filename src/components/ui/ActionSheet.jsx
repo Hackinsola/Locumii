@@ -1,14 +1,43 @@
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 // iOS-style action sheet (the LAI "Help & Support" contact picker). A dimmed backdrop
 // plus a bottom-anchored panel of choices that slides up. `actions` is a list of
 // { label, icon?, onSelect?, href?, tone? }. Renders nothing when closed.
 function ActionSheet({ open, onClose, title, description, actions = [] }) {
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    if (dialogRef.current) {
+      const firstButton = dialogRef.current.querySelector('button, a');
+      if (firstButton) {
+        firstButton.focus();
+      }
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, onClose]);
+
   if (!open) {
     return null;
   }
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
       role="dialog"
       aria-modal="true"

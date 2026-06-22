@@ -34,7 +34,10 @@ const DESC_TEMPLATES = [
 function isoDate(offsetDays) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 function combine(date, time) {
   return date && time ? new Date(`${date}T${time}`) : null;
@@ -213,15 +216,18 @@ function PostShift() {
           <Card>
             <CardContent className="flex flex-col gap-3">
               <div className="flex flex-wrap gap-2">
-                {DATE_PRESETS.map((preset) => (
-                  <SelectChip
-                    key={preset.key}
-                    selected={form.date === isoDate(preset.offset)}
-                    onClick={() => update('date', isoDate(preset.offset))}
-                  >
-                    {preset.key}
-                  </SelectChip>
-                ))}
+                {DATE_PRESETS.map((preset) => {
+                  const presetDate = isoDate(preset.offset);
+                  return (
+                    <SelectChip
+                      key={preset.key}
+                      selected={form.date === presetDate}
+                      onClick={() => update('date', presetDate)}
+                    >
+                      {preset.key}
+                    </SelectChip>
+                  );
+                })}
               </div>
               <Field label="Job date" error={errors.date}>
                 <Input

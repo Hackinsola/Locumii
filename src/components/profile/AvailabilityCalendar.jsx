@@ -66,6 +66,7 @@ function AvailabilityCalendar({
         {cells.map((cell) => (
           <div key={cell.key} className="flex items-center justify-center">
             <span
+              aria-label={`Day ${cell.date.getDate()}, ${cell.status}`}
               className={cn(
                 'flex size-9 items-center justify-center rounded-full text-sm',
                 cell.status === 'past' && 'text-muted-foreground/40',

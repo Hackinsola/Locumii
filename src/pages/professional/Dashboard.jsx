@@ -25,7 +25,7 @@ const SPECIALTY_LABELS = Object.fromEntries(
 function Dashboard() {
   const navigate = useNavigate();
   const { userId } = useAuth();
-  const { profile, loading: profileLoading } = useProfessionalProfile(userId);
+  const { profile, loading: profileLoading, error: profileError } = useProfessionalProfile(userId);
   const { pending, refetch: refetchPending } = usePendingRatings();
   const [filter, setFilter] = useState('near');
 
@@ -36,10 +36,10 @@ function Dashboard() {
 
   // No profile row yet → send them through onboarding first.
   useEffect(() => {
-    if (!profileLoading && !profile) {
+    if (!profileLoading && !profile && !profileError) {
       navigate('/professional/onboarding', { replace: true });
     }
-  }, [profileLoading, profile, navigate]);
+  }, [profileLoading, profile, profileError, navigate]);
 
   const preferred = useMemo(() => profile?.preferred_cities ?? [], [profile]);
   const { near, away } = useMemo(() => {

@@ -106,7 +106,8 @@ function Onboarding() {
     ) {
       next.councilRegNumber = `Enter a valid registration number (format: ${COUNCIL_REG_HINTS[form.specialty]}).`;
     }
-    if (!validateNigerianPhone(form.phone)) {
+    const normalizedPhone = form.phone.replace(/\s+/g, '');
+    if (!validateNigerianPhone(normalizedPhone)) {
       next.phone = 'Enter a valid Nigerian phone number.';
     }
     const years = Number(form.yearsExperience);
@@ -131,7 +132,7 @@ function Onboarding() {
       fullName: form.fullName.trim(),
       specialty: form.specialty,
       councilRegNumber: form.councilRegNumber.trim(),
-      phone: form.phone.trim(),
+      phone: form.phone.replace(/\s+/g, ''),
       yearsExperience: Number(form.yearsExperience),
       bio: form.bio.trim(),
       preferredCities: form.preferredCities,
@@ -230,7 +231,7 @@ function Onboarding() {
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
-                  placeholder="0801 234 5678"
+                  placeholder="08012345678"
                   className="pl-9"
                   aria-invalid={Boolean(errors.phone)}
                 />

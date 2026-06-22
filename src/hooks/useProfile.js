@@ -207,12 +207,17 @@ export function useSaveAvailability() {
         if (preferredCities !== undefined) {
           patch.preferred_cities = preferredCities;
         }
-        const { error: saveError } = await supabase
+        const { data, error: saveError } = await supabase
           .from('professional_profiles')
           .update(patch)
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .select()
+          .maybeSingle();
         if (saveError) {
           throw saveError;
+        }
+        if (data === null) {
+          throw new Error('No profile found to update.');
         }
         return { error: null };
       } catch (caught) {

@@ -254,7 +254,7 @@ function Onboarding() {
                   name="contactPhone"
                   value={form.contactPhone}
                   onChange={handleChange}
-                  placeholder="0801 234 5678"
+                  placeholder="08012345678"
                   className="pl-9"
                   aria-invalid={Boolean(errors.contactPhone)}
                 />

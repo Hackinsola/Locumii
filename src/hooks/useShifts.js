@@ -146,6 +146,63 @@ export function useFacilityShifts() {
   return { shifts, loading, error, refetch: fetchShifts };
 }
 
+// Fetches aggregate counts of shifts by status for the current facility.
+// Returns totals without pagination to avoid undercounting.
+export function useFacilityShiftCounts() {
+  const facilityId = useAuthStore((state) => state.userId);
+  const [counts, setCounts] = useState({ total: 0, filled: 0, completed: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchCounts = useCallback(async () => {
+    try {
+      const { count: totalCount, error: totalError } = await supabase
+        .from('shifts')
+        .select('*', { count: 'exact', head: true })
+        .eq('facility_id', facilityId);
+      if (totalError) {
+        throw totalError;
+      }
+
+      const { count: filledCount, error: filledError } = await supabase
+        .from('shifts')
+        .select('*', { count: 'exact', head: true })
+        .eq('facility_id', facilityId)
+        .eq('status', 'filled');
+      if (filledError) {
+        throw filledError;
+      }
+
+      const { count: completedCount, error: completedError } = await supabase
+        .from('shifts')
+        .select('*', { count: 'exact', head: true })
+        .eq('facility_id', facilityId)
+        .eq('status', 'completed');
+      if (completedError) {
+        throw completedError;
+      }
+
+      setCounts({
+        total: totalCount ?? 0,
+        filled: filledCount ?? 0,
+        completed: completedCount ?? 0,
+      });
+      setError(null);
+    } catch (caught) {
+      setError(caught);
+    } finally {
+      setLoading(false);
+    }
+  }, [facilityId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCounts();
+  }, [fetchCounts]);
+
+  return { counts, loading, error, refetch: fetchCounts };
+}
+
 // Fetches a single shift by id (open, or one the professional has bid on — both
 // allowed by RLS). Returns null if not found / not visible.
 export function useShift(shiftId) {

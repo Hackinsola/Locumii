@@ -8,6 +8,7 @@ import {
   Mail,
   MessageCircle,
   Pencil,
+  Phone,
   Settings as SettingsIcon,
   Star,
   Wallet,
@@ -24,7 +25,7 @@ import { validateNigerianPhone } from '@/utils/validators';
 import { useOwnFacilityProfile, useSaveFacilityProfile } from '@/hooks/useProfile';
 import { useFacilityShifts, useFacilityShiftStats } from '@/hooks/useShifts';
 import { useAuth } from '@/hooks/useAuth';
-import { SUPPORT_EMAIL_HREF, SUPPORT_WHATSAPP_URL } from '@/constants/support';
+import { SUPPORT_EMAIL_HREF, SUPPORT_PHONE_HREF, SUPPORT_WHATSAPP_URL } from '@/constants/support';
 import PageContainer from '@/components/layout/PageContainer';
 
 const FIXED_STATE = 'FCT';
@@ -238,8 +239,9 @@ function MyProfile() {
             title="Help & support"
             description="How would you like to contact us?"
             actions={[
-              { label: 'Email', icon: Mail, href: SUPPORT_EMAIL_HREF },
               { label: 'WhatsApp', icon: MessageCircle, href: SUPPORT_WHATSAPP_URL },
+              { label: 'Call', icon: Phone, href: SUPPORT_PHONE_HREF },
+              { label: 'Email', icon: Mail, href: SUPPORT_EMAIL_HREF },
             ]}
           />
         </>

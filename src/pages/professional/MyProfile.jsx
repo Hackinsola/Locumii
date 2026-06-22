@@ -9,6 +9,7 @@ import {
   History,
   Mail,
   MessageCircle,
+  Phone,
   Settings as SettingsIcon,
   Star,
   UserPen,
@@ -31,7 +32,7 @@ import { useProfessionalBids } from '@/hooks/useBids';
 import { useAuth } from '@/hooks/useAuth';
 import { formatNaira } from '@/utils/money';
 import { dateKey } from '@/utils/availability';
-import { SUPPORT_EMAIL_HREF, SUPPORT_WHATSAPP_URL } from '@/constants/support';
+import { SUPPORT_EMAIL_HREF, SUPPORT_PHONE_HREF, SUPPORT_WHATSAPP_URL } from '@/constants/support';
 import PageContainer from '@/components/layout/PageContainer';
 
 const SPECIALTY_LABELS = Object.fromEntries(
@@ -347,8 +348,9 @@ function MyProfile() {
             title="Help & support"
             description="How would you like to contact us?"
             actions={[
-              { label: 'Email', icon: Mail, href: SUPPORT_EMAIL_HREF },
               { label: 'WhatsApp', icon: MessageCircle, href: SUPPORT_WHATSAPP_URL },
+              { label: 'Call', icon: Phone, href: SUPPORT_PHONE_HREF },
+              { label: 'Email', icon: Mail, href: SUPPORT_EMAIL_HREF },
             ]}
           />
         </>

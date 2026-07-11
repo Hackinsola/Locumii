@@ -139,13 +139,60 @@ export function useReleasePayment() {
       return { result: data, error: null };
     } catch (caught) {
       setError(caught);
-      return { result: null, error: caught };
+      // Non-2xx responses (needsBank / needsOtp / a declined transfer) arrive as a
+      // FunctionsHttpError with the function's JSON body on `context`. Surface that
+      // body as the result so callers can branch on needsBank etc. instead of only
+      // seeing a generic failure.
+      let body = null;
+      if (caught?.context && typeof caught.context.json === 'function') {
+        try {
+          body = await caught.context.json();
+        } catch {
+          body = null;
+        }
+      }
+      return { result: body, error: caught };
     } finally {
       setLoading(false);
     }
   }, []);
 
   return { releasePayment, loading, error };
+}
+
+// The payout ledger row for one shift (at most one — transactions.shift_id is
+// unique). RLS limits reads to the shift's facility, the accepted professional,
+// or an admin. Drives the payout status + retry affordance on completed shifts.
+export function useShiftTransaction(shiftId) {
+  const [transaction, setTransaction] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchTransaction = useCallback(async () => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('transactions')
+        .select('id, status, net_amount_naira, released_at')
+        .eq('shift_id', shiftId)
+        .maybeSingle();
+      if (fetchError) {
+        throw fetchError;
+      }
+      setTransaction(data ?? null);
+      setError(null);
+    } catch (caught) {
+      setError(caught);
+    } finally {
+      setLoading(false);
+    }
+  }, [shiftId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTransaction();
+  }, [fetchTransaction]);
+
+  return { transaction, loading, error, refetch: fetchTransaction };
 }
 
 // The supported Nigerian banks (name + code) for the bank-linking select, fetched
@@ -296,27 +343,33 @@ export function useOwnBankAccount() {
 // verify-payment Edge Function checks the charge with Paystack (secret key,
 // server-side), confirms the amount equals the gross pay rate, and creates the
 // shift — so the shift is never created without a confirmed payment.
+// `simulate: true` asks the server to post without a charge; it only works while
+// the PAYMENTS_SIMULATE Edge secret is set (dev/testing) — otherwise the server
+// answers { simulationDisabled: true } and the caller falls back to real payment.
 export function usePostPaidShift() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const postPaidShift = useCallback(async ({ reference, shift }) => {
+  const postPaidShift = useCallback(async ({ reference, shift, simulate = false }) => {
     setLoading(true);
     setError(null);
     try {
       const { data, error: invokeError } = await supabase.functions.invoke('verify-payment', {
-        body: { reference, shift },
+        body: { reference, shift, simulate },
       });
       if (invokeError) {
         throw invokeError;
       }
+      if (data?.simulationDisabled) {
+        return { shiftId: null, simulationDisabled: true, error: null };
+      }
       if (!data?.success) {
         throw new Error(data?.error ?? 'Payment could not be verified.');
       }
-      return { shiftId: data.shiftId, error: null };
+      return { shiftId: data.shiftId, simulationDisabled: false, error: null };
     } catch (caught) {
       setError(caught);
-      return { shiftId: null, error: caught };
+      return { shiftId: null, simulationDisabled: false, error: caught };
     } finally {
       setLoading(false);
     }

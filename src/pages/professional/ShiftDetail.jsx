@@ -23,7 +23,7 @@ import {
   useShiftConfirmation,
 } from '@/hooks/useShiftConfirmation';
 import { useShiftRating, useSubmitRating } from '@/hooks/useRatings';
-import { useReleasePayment } from '@/hooks/usePayments';
+import { useReleasePayment, useShiftTransaction } from '@/hooks/usePayments';
 import RatingForm from '@/components/ratings/RatingForm';
 import {
   formatLongDate,
@@ -108,6 +108,7 @@ function ShiftDetail() {
   const { rating, refetch: refetchRating } = useShiftRating(shiftId);
   const { submitRating, loading: ratingSubmitting } = useSubmitRating();
   const { releasePayment, loading: releasing } = useReleasePayment();
+  const { transaction, refetch: refetchTransaction } = useShiftTransaction(shiftId);
   const [bidError, setBidError] = useState(null);
   const [completionError, setCompletionError] = useState(null);
   const [payoutNote, setPayoutNote] = useState(null);
@@ -151,14 +152,17 @@ function ShiftDetail() {
   async function handleRetryPayout() {
     setPayoutNote(null);
     const { result } = await releasePayment(shiftId);
+    refetchTransaction();
     if (result?.released || result?.alreadyReleased) {
       setPayoutNote('Your payment is on its way.');
     } else if (result?.needsBank) {
-      setPayoutNote('Link your bank account below to receive payment.');
+      setPayoutNote('Link your bank account on the Earnings page to receive payment.');
+    } else if (result?.processing) {
+      setPayoutNote('Your payout is processing.');
     } else if (result?.ready === false) {
       setPayoutNote('Waiting for both parties to confirm before payout.');
     } else {
-      setPayoutNote('Could not process the payout yet. Please try again shortly.');
+      setPayoutNote(result?.error ?? 'Could not process the payout yet. Please try again shortly.');
     }
   }
 
@@ -175,6 +179,7 @@ function ShiftDetail() {
     // If this was the second confirmation, the payout runs now (idempotent no-op
     // otherwise). needsBank means this professional must link their bank to be paid.
     const { result } = await releasePayment(shiftId);
+    refetchTransaction();
     if (result?.released || result?.alreadyReleased) {
       setPayoutNote('Shift complete — your payment is on its way.');
     } else if (result?.needsBank) {
@@ -316,15 +321,39 @@ function ShiftDetail() {
                 {shift.status === 'completed' && (
                   <>
                     <p className="text-sm font-medium text-foreground">Shift completed.</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="self-start"
-                      onClick={handleRetryPayout}
-                      disabled={releasing}
-                    >
-                      {releasing ? 'Checking…' : 'Check payout status'}
-                    </Button>
+                    {/* Payout status from the ledger, with a retry when it didn't go through. */}
+                    {transaction?.status === 'released' && (
+                      <p className="text-sm text-muted-foreground">
+                        You were paid {formatNaira(transaction.net_amount_naira)}
+                        {transaction.released_at
+                          ? ` on ${formatLongDate(transaction.released_at)}`
+                          : ''}
+                        .
+                      </p>
+                    )}
+                    {transaction?.status === 'escrow' && (
+                      <p className="text-sm text-muted-foreground">Your payout is processing…</p>
+                    )}
+                    {transaction?.status === 'failed' && (
+                      <p className="text-sm text-destructive">
+                        Your last payout attempt did not go through.
+                      </p>
+                    )}
+                    {transaction?.status !== 'released' && transaction?.status !== 'escrow' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="self-start"
+                        onClick={handleRetryPayout}
+                        disabled={releasing}
+                      >
+                        {releasing
+                          ? 'Checking…'
+                          : transaction?.status === 'failed'
+                            ? 'Retry payout'
+                            : 'Check payout status'}
+                      </Button>
+                    )}
                   </>
                 )}
                 {completionError && <p className="text-sm text-destructive">{completionError}</p>}

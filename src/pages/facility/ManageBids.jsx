@@ -14,8 +14,10 @@ import { useAcceptBid, useShiftBids } from '@/hooks/useBids';
 import { useShift } from '@/hooks/useShifts';
 import { useConfirmCompletion, useShiftConfirmation } from '@/hooks/useShiftConfirmation';
 import { useShiftRating, useSubmitRating } from '@/hooks/useRatings';
-import { useReleasePayment } from '@/hooks/usePayments';
+import { useReleasePayment, useShiftTransaction } from '@/hooks/usePayments';
 import RatingForm from '@/components/ratings/RatingForm';
+import { formatNaira } from '@/utils/money';
+import { formatLongDate } from '@/utils/dateTime';
 import { cn } from '@/lib/utils';
 import PageContainer from '@/components/layout/PageContainer';
 
@@ -43,7 +45,8 @@ function ManageBids() {
   const { confirm, loading: confirming } = useConfirmCompletion();
   const { rating, refetch: refetchRating } = useShiftRating(shiftId);
   const { submitRating, loading: ratingSubmitting } = useSubmitRating();
-  const { releasePayment } = useReleasePayment();
+  const { releasePayment, loading: releasing } = useReleasePayment();
+  const { transaction, refetch: refetchTransaction } = useShiftTransaction(shiftId);
   const [actionError, setActionError] = useState(null);
   const [ratingError, setRatingError] = useState(null);
   const [payoutNote, setPayoutNote] = useState(null);
@@ -96,10 +99,34 @@ function ManageBids() {
     refetchShift();
     // Second confirmation triggers the payout (idempotent no-op otherwise).
     const { result } = await releasePayment(shiftId);
+    refetchTransaction();
     if (result?.released || result?.alreadyReleased) {
       setPayoutNote('Job complete — payment released to the professional.');
     } else if (result?.needsBank) {
       setPayoutNote('Job complete. The professional will be paid once they link their bank account.');
+    }
+  }
+
+  // Re-invokes release-payment for a completed shift whose payout didn't go
+  // through (failed transfer, or the professional had no bank linked). The Edge
+  // Function is idempotent, so this can never double-pay.
+  async function handleRetryPayout() {
+    setActionError(null);
+    setPayoutNote(null);
+    const { result } = await releasePayment(shiftId);
+    refetchTransaction();
+    if (result?.released || result?.alreadyReleased) {
+      setPayoutNote('Payment released to the professional.');
+    } else if (result?.needsBank) {
+      setPayoutNote(
+        'The professional has not linked their bank account yet — the payout will run once they do.'
+      );
+    } else if (result?.processing) {
+      setPayoutNote('The payout is already processing.');
+    } else if (result?.ready === false) {
+      setPayoutNote('Waiting for both parties to confirm completion.');
+    } else {
+      setPayoutNote(result?.error ?? 'The payout could not be completed. Please try again.');
     }
   }
 
@@ -138,6 +165,36 @@ function ManageBids() {
             <p className="flex items-center gap-1.5 text-sm font-medium text-status-success">
               <CheckCircle2 className="size-4" aria-hidden="true" /> Job completed.
             </p>
+            {/* Payout status from the ledger, with a retry when it didn't go through. */}
+            {transaction?.status === 'released' && (
+              <p className="text-sm text-muted-foreground">
+                {formatNaira(transaction.net_amount_naira)} was released to the professional
+                {transaction.released_at ? ` on ${formatLongDate(transaction.released_at)}` : ''}.
+              </p>
+            )}
+            {transaction?.status === 'escrow' && (
+              <p className="text-sm text-muted-foreground">The payout is processing…</p>
+            )}
+            {transaction?.status === 'failed' && (
+              <p className="text-sm text-destructive">
+                The payout to the professional did not go through.
+              </p>
+            )}
+            {transaction?.status !== 'released' && transaction?.status !== 'escrow' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="self-start"
+                onClick={handleRetryPayout}
+                disabled={releasing}
+              >
+                {releasing
+                  ? 'Processing…'
+                  : transaction?.status === 'failed'
+                    ? 'Retry payout'
+                    : 'Run payout'}
+              </Button>
+            )}
             {acceptedProfessionalId && (
               <>
                 <span className="text-sm font-medium text-foreground">Rate the professional</span>

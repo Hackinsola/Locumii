@@ -110,9 +110,9 @@ Only credential documents. All buckets are **private** — no public URLs.
 
 |Bucket       |Path pattern                              |Access                                                                       |
 |-------------|------------------------------------------|-----------------------------------------------------------------------------|
-|`credentials`|`/{professional_id}/{doc_type}/{filename}`|Professional can upload; admin can read; professional can read own files only|
+|`credentials`|`/{professional_id}/{doc_type}/{filename}`|Professional can upload and read own files; admin can read all; facility can read `approved` documents of professionals with a live (pending/accepted) bid on its shifts|
 
-Files are never served directly to the frontend. A signed URL with a 15-minute expiry is generated on demand when an admin opens a document for review.
+Files are never served directly to the frontend. A signed URL with a 15-minute expiry is generated on demand when an admin opens a document for review, or when a facility views an approved credential of a professional bidding on its shift.
 
 ### Client-Side (Zustand) — Ephemeral State
 
@@ -148,7 +148,7 @@ All tables have RLS enabled. No table is publicly readable or writable without a
 |`shifts`               |`status = 'open'` rows readable by any authenticated user   |Insert: facility only; Update: facility (own shifts) or Edge Function              |
 |`bids`                 |Professional sees own bids; facility sees bids on own shifts|Insert: professional only (own bids); Update: Edge Function only                   |
 |`professional_profiles`|Any authenticated user can read; admin can read all         |Professional can update own row only                                               |
-|`credentials`          |Professional reads own; admin reads all                     |Professional inserts own; admin updates `status` only                              |
+|`credentials`          |Professional reads own; admin reads all; facility reads `approved` rows of live bidders on its shifts|Professional inserts own; admin updates `status` only                              |
 |`transactions`         |Professional reads own; facility reads own; admin reads all |Insert and update: Edge Function only — never the frontend                         |
 |`ratings`              |Public read                                                 |Insert: authenticated user who was party to the shift, once per shift per direction|
 |`notifications`        |User reads own only                                         |Insert: Edge Function only                                                         |
@@ -206,7 +206,7 @@ The `transactions` table is an immutable financial ledger. Once a row’s `statu
 The Supabase `service_role` key bypasses all RLS policies. It must exist only in Supabase Edge Function environment variables and in the CI/CD secrets vault (Vercel env vars). A pre-commit hook must scan for the key string pattern and block any commit that contains it. If the key is ever committed, it must be rotated immediately.
 
 **INV-06 — Credential documents are never publicly accessible.**
-The `credentials` Supabase Storage bucket must remain private. No code may generate a public URL for a credential document. All document access goes through a signed URL with a maximum expiry of 15 minutes, generated only when an admin explicitly requests to review a document. The bucket ACL must be audited before every production deployment.
+The `credentials` Supabase Storage bucket must remain private. No code may generate a public URL for a credential document. All document access goes through a signed URL with a maximum expiry of 15 minutes, generated only when an admin explicitly requests to review a document or when a facility views an `approved` credential of a professional who holds a live (pending or accepted) bid on one of its shifts (migration 039). The bucket ACL must be audited before every production deployment.
 
 **INV-07 — Shift `status` transitions are one-directional and enumerated.**
 A shift may only move forward through the following state machine: `open → filled → in_progress → completed`. It may also move to `cancelled` from `open` or `filled` only. No other transitions are valid. This is enforced by a PostgreSQL check constraint on `shifts.status` and a trigger that rejects backward transitions. A shift cannot return from `completed` to any prior state under any circumstance.

@@ -51,8 +51,20 @@ Deno.serve(async (req: Request) => {
 
   const reference = payload.reference;
   const shift = payload.shift as Record<string, unknown> | undefined;
+  // DEV-ONLY: the client may ask to post without a charge. Honoured only while the
+  // PAYMENTS_SIMULATE Edge secret is 'true' (same switch as release-payment's
+  // simulated payouts). NEVER set in production: shifts would post unpaid.
+  const simulateRequested = payload.simulate === true;
+  const simulateEnabled = Deno.env.get('PAYMENTS_SIMULATE') === 'true';
+  if (simulateRequested && !simulateEnabled) {
+    // Tell the client to fall back to the real Paystack popup.
+    return json({ success: false, simulationDisabled: true }, 200);
+  }
   if (typeof reference !== 'string' || reference.length === 0) {
     return json({ error: 'Missing payment reference.' }, 400);
+  }
+  if (simulateRequested && !reference.startsWith('SIMULATED-')) {
+    return json({ error: 'Simulated posts must use a SIMULATED- reference.' }, 400);
   }
   if (!shift || typeof shift !== 'object') {
     return json({ error: 'Missing shift details.' }, 400);
@@ -107,29 +119,33 @@ Deno.serve(async (req: Request) => {
     return json({ success: true, shiftId: existing.id, duplicate: true }, 200);
   }
 
-  // Verify the charge with Paystack (server-side; explicit timeout per code-standards).
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), PAYSTACK_TIMEOUT_MS);
-  let verify: { status?: boolean; data?: { status?: string; amount?: number } };
-  try {
-    const response = await fetch(PAYSTACK_VERIFY_URL + encodeURIComponent(reference), {
-      headers: { Authorization: `Bearer ${paystackSecret}` },
-      signal: controller.signal,
-    });
-    verify = await response.json();
-  } catch (_error) {
-    return json({ error: 'Could not verify the payment with Paystack. Please try again.' }, 502);
-  } finally {
-    clearTimeout(timeout);
-  }
+  // Verify the charge with Paystack (server-side; explicit timeout per
+  // code-standards). Skipped entirely for a simulated post (dev flag above):
+  // there is no charge to verify — the SIMULATED- reference is recorded as-is.
+  if (!simulateRequested) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PAYSTACK_TIMEOUT_MS);
+    let verify: { status?: boolean; data?: { status?: string; amount?: number } };
+    try {
+      const response = await fetch(PAYSTACK_VERIFY_URL + encodeURIComponent(reference), {
+        headers: { Authorization: `Bearer ${paystackSecret}` },
+        signal: controller.signal,
+      });
+      verify = await response.json();
+    } catch (_error) {
+      return json({ error: 'Could not verify the payment with Paystack. Please try again.' }, 502);
+    } finally {
+      clearTimeout(timeout);
+    }
 
-  if (!verify?.status || verify?.data?.status !== 'success') {
-    return json({ error: 'Payment was not successful.' }, 402);
-  }
-  // The facility pays the gross pay rate (professional bears the fee), so the
-  // verified Paystack amount must equal payRateKobo exactly.
-  if (Number(verify.data?.amount) !== Number(payRateKobo)) {
-    return json({ error: 'Paid amount does not match the shift pay rate.' }, 402);
+    if (!verify?.status || verify?.data?.status !== 'success') {
+      return json({ error: 'Payment was not successful.' }, 402);
+    }
+    // The facility pays the gross pay rate (professional bears the fee), so the
+    // verified Paystack amount must equal payRateKobo exactly.
+    if (Number(verify.data?.amount) !== Number(payRateKobo)) {
+      return json({ error: 'Paid amount does not match the shift pay rate.' }, 402);
+    }
   }
 
   const { data: inserted, error: insertError } = await adminClient
@@ -156,5 +172,5 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  return json({ success: true, shiftId: inserted.id }, 200);
+  return json({ success: true, shiftId: inserted.id, simulated: simulateRequested }, 200);
 });

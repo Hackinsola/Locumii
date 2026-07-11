@@ -343,27 +343,33 @@ export function useOwnBankAccount() {
 // verify-payment Edge Function checks the charge with Paystack (secret key,
 // server-side), confirms the amount equals the gross pay rate, and creates the
 // shift — so the shift is never created without a confirmed payment.
+// `simulate: true` asks the server to post without a charge; it only works while
+// the PAYMENTS_SIMULATE Edge secret is set (dev/testing) — otherwise the server
+// answers { simulationDisabled: true } and the caller falls back to real payment.
 export function usePostPaidShift() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const postPaidShift = useCallback(async ({ reference, shift }) => {
+  const postPaidShift = useCallback(async ({ reference, shift, simulate = false }) => {
     setLoading(true);
     setError(null);
     try {
       const { data, error: invokeError } = await supabase.functions.invoke('verify-payment', {
-        body: { reference, shift },
+        body: { reference, shift, simulate },
       });
       if (invokeError) {
         throw invokeError;
       }
+      if (data?.simulationDisabled) {
+        return { shiftId: null, simulationDisabled: true, error: null };
+      }
       if (!data?.success) {
         throw new Error(data?.error ?? 'Payment could not be verified.');
       }
-      return { shiftId: data.shiftId, error: null };
+      return { shiftId: data.shiftId, simulationDisabled: false, error: null };
     } catch (caught) {
       setError(caught);
-      return { shiftId: null, error: caught };
+      return { shiftId: null, simulationDisabled: false, error: caught };
     } finally {
       setLoading(false);
     }

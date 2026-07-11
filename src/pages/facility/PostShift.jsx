@@ -9,9 +9,9 @@ import SelectChip from '@/components/ui/SelectChip';
 import SectionLabel from '@/components/ui/SectionLabel';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import PageContainer from '@/components/layout/PageContainer';
-import { FCT_CITIES } from '@/constants/options';
 import { usePostPaidShift } from '@/hooks/usePayments';
 import { useAuth } from '@/hooks/useAuth';
+import { useOwnFacilityProfile } from '@/hooks/useProfile';
 import { openPaystackPopup } from '@/lib/paystack';
 import { calculateNet, formatNaira, nairaToKobo } from '@/utils/money';
 import { COMMISSION_RATE } from '@/constants/fees';
@@ -56,7 +56,11 @@ const TIME_PRESETS = [
 function PostShift() {
   const navigate = useNavigate();
   const { postPaidShift, loading: paying } = usePostPaidShift();
-  const { email } = useAuth();
+  const { email, userId } = useAuth();
+  // The job's location is the facility's own location (set at onboarding) — it is
+  // not chosen per job.
+  const { profile: facilityProfile } = useOwnFacilityProfile(userId);
+  const facilityCity = facilityProfile?.city ?? null;
   const [form, setForm] = useState({
     roleRequired: '',
     requirements: '',
@@ -64,7 +68,6 @@ function PostShift() {
     start: '',
     end: '',
     hourlyRate: '',
-    city: '',
   });
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
@@ -99,7 +102,9 @@ function PostShift() {
     if (!form.end) next.end = 'Set an end time.';
     else if (form.start && hours <= 0) next.end = 'End must be after the start.';
     if (!(Number(form.hourlyRate) > 0)) next.hourlyRate = 'Enter an hourly rate.';
-    if (!FCT_CITIES.includes(form.city)) next.city = 'Choose a location.';
+    if (!facilityCity) {
+      next.city = 'Your facility profile has no location yet — add it on My Profile first.';
+    }
     return next;
   }
 
@@ -125,18 +130,36 @@ function PostShift() {
     navigate('/facility/shifts');
   }
 
-  function handleConfirmPay() {
+  async function handleConfirmPay() {
     setShowSummary(false);
     setSubmitError(null);
-    const reference = `locumii-${crypto.randomUUID()}`;
     const draft = {
       roleRequired: form.roleRequired.trim(),
       startTime: combine(form.date, form.start).toISOString(),
       endTime: combine(form.date, form.end).toISOString(),
       payRateKobo: totalKobo,
       requirements: form.requirements.trim(),
-      city: form.city,
+      city: facilityCity,
     };
+
+    // Test mode first: while the server's PAYMENTS_SIMULATE flag is on, this posts
+    // the job immediately without charging. Once payments go live (flag removed),
+    // the server declines simulation and we fall through to the real Paystack popup.
+    const { shiftId, simulationDisabled, error: simulateError } = await postPaidShift({
+      reference: `SIMULATED-locumii-${crypto.randomUUID()}`,
+      shift: draft,
+      simulate: true,
+    });
+    if (shiftId) {
+      navigate('/facility/shifts');
+      return;
+    }
+    if (!simulationDisabled) {
+      setSubmitError(simulateError?.message ?? 'Could not post the job. Please try again.');
+      return;
+    }
+
+    const reference = `locumii-${crypto.randomUUID()}`;
     try {
       openPaystackPopup({
         email,
@@ -293,27 +316,33 @@ function PostShift() {
           </Card>
         </div>
 
-        {/* Location */}
+        {/* Location — taken from the facility profile (set at onboarding), not
+            chosen per job. */}
         <div className="flex flex-col gap-2">
           <SectionLabel>Location</SectionLabel>
-          <p className="flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-3.5" aria-hidden="true" /> Area council (FCT)
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {FCT_CITIES.map((city) => (
-              <SelectChip key={city} selected={form.city === city} onClick={() => update('city', city)}>
-                {city}
-              </SelectChip>
-            ))}
-          </div>
+          <Card>
+            <CardContent className="flex items-center gap-3">
+              <MapPin className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">
+                  {facilityCity ?? 'No location on your profile yet'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Taken from your facility profile.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
           {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}
         </div>
 
         {submitError && <p className="text-sm text-destructive">{submitError}</p>}
       </PageContainer>
 
-      {/* Sticky publish bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 px-4 py-3 backdrop-blur">
+      {/* Sticky publish bar. On mobile it sits flush above the h-16 bottom tab bar
+          (which is fixed at bottom-0 with a higher z-index and was covering the
+          button); at md+ the tab bar is hidden so the publish bar drops to the edge. */}
+      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-background/90 px-4 py-3 backdrop-blur md:bottom-0">
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <div className="hidden flex-1 sm:block">
             <p className="text-xs text-muted-foreground">You pay upfront via Paystack</p>

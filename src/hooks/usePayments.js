@@ -139,13 +139,60 @@ export function useReleasePayment() {
       return { result: data, error: null };
     } catch (caught) {
       setError(caught);
-      return { result: null, error: caught };
+      // Non-2xx responses (needsBank / needsOtp / a declined transfer) arrive as a
+      // FunctionsHttpError with the function's JSON body on `context`. Surface that
+      // body as the result so callers can branch on needsBank etc. instead of only
+      // seeing a generic failure.
+      let body = null;
+      if (caught?.context && typeof caught.context.json === 'function') {
+        try {
+          body = await caught.context.json();
+        } catch {
+          body = null;
+        }
+      }
+      return { result: body, error: caught };
     } finally {
       setLoading(false);
     }
   }, []);
 
   return { releasePayment, loading, error };
+}
+
+// The payout ledger row for one shift (at most one — transactions.shift_id is
+// unique). RLS limits reads to the shift's facility, the accepted professional,
+// or an admin. Drives the payout status + retry affordance on completed shifts.
+export function useShiftTransaction(shiftId) {
+  const [transaction, setTransaction] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchTransaction = useCallback(async () => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('transactions')
+        .select('id, status, net_amount_naira, released_at')
+        .eq('shift_id', shiftId)
+        .maybeSingle();
+      if (fetchError) {
+        throw fetchError;
+      }
+      setTransaction(data ?? null);
+      setError(null);
+    } catch (caught) {
+      setError(caught);
+    } finally {
+      setLoading(false);
+    }
+  }, [shiftId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTransaction();
+  }, [fetchTransaction]);
+
+  return { transaction, loading, error, refetch: fetchTransaction };
 }
 
 // The supported Nigerian banks (name + code) for the bank-linking select, fetched

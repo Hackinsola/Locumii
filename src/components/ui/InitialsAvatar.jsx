@@ -35,6 +35,8 @@ function InitialsAvatar({ name, src, size = 'md', tone = 'brand', className }) {
       <img
         src={src}
         alt={name ? `Photo of ${name}` : 'Profile photo'}
+        loading="lazy"
+        decoding="async"
         className={cn('shrink-0 rounded-full object-cover', sizes[size], className)}
       />
     );

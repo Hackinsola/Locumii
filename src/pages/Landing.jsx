@@ -402,10 +402,10 @@ function Landing() {
         {/* Settles onto a more solid, shadowed background once the user scrolls
             past the hero — a small premium detail. */}
         <div
-          className={`mx-auto flex h-14 w-full max-w-5xl animate-in items-center justify-between rounded-full border pl-5 pr-2 backdrop-blur transition-[background-color,border-color,box-shadow] duration-500 fade-in slide-in-from-top-2 ${
+          className={`mx-auto flex h-14 w-full max-w-5xl animate-in items-center justify-between rounded-full border pl-5 pr-2 transition-[background-color,border-color,box-shadow] duration-500 fade-in slide-in-from-top-2 ${
             scrolled
-              ? 'border-border bg-card/95 shadow-lg shadow-foreground/5'
-              : 'border-border/60 bg-card/70'
+              ? 'border-border bg-card shadow-lg shadow-foreground/5'
+              : 'border-border/60 bg-card/90'
           }`}
         >
           <Link to="/" aria-label="Locumii home">
@@ -459,7 +459,7 @@ function Landing() {
         {/* Ambient breathing glow — atmosphere/depth behind the hero. */}
         <div
           aria-hidden="true"
-          className="animate-breathe pointer-events-none absolute left-1/2 top-[-5rem] -z-10 h-[30rem] w-[42rem] max-w-[92vw] -translate-x-1/2 rounded-full blur-3xl"
+          className="animate-breathe pointer-events-none absolute left-1/2 top-[-5rem] -z-10 h-[30rem] w-[42rem] max-w-[92vw] -translate-x-1/2 rounded-full"
           style={{
             background:
               'radial-gradient(closest-side, color-mix(in oklab, var(--brand-green) 32%, transparent), transparent)',
@@ -548,7 +548,7 @@ function Landing() {
           {/* Soft green glow grounding the floating card — reads as a cast light. */}
           <div
             aria-hidden="true"
-            className="animate-breathe pointer-events-none absolute inset-x-8 bottom-2 top-10 -z-10 rounded-full blur-3xl"
+            className="animate-breathe pointer-events-none absolute inset-x-8 bottom-2 top-10 -z-10 rounded-full"
             style={{
               background:
                 'radial-gradient(closest-side, color-mix(in oklab, var(--brand-green) 22%, transparent), transparent)',
@@ -672,7 +672,7 @@ function Landing() {
           {/* Soft brand glow behind the statement. */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-40 w-80 max-w-[90%] -translate-x-1/2 rounded-full blur-3xl"
+            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-40 w-80 max-w-[90%] -translate-x-1/2 rounded-full"
             style={{
               background:
                 'radial-gradient(closest-side, color-mix(in oklab, var(--brand-green) 16%, transparent), transparent)',

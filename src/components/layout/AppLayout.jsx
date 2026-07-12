@@ -101,7 +101,9 @@ function AppLayout() {
 
       {/* Main column — offset for the fixed sidebar on desktop. */}
       <div className="md:pl-64">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur sm:px-6 lg:px-8">
+        {/* Solid background on purpose: backdrop-blur on a sticky header re-blurs
+            the page on every scroll frame and makes mobile scrolling choppy. */}
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background px-4 sm:px-6 lg:px-8">
           {/* Logo shows on mobile where the sidebar is hidden. */}
           <NavLink to="/" className="md:hidden" aria-label="Locumii home">
             <Logo />

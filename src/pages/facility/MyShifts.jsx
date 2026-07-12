@@ -82,7 +82,7 @@ function MyShifts() {
       )}
       {cancelError && <p className="text-sm text-destructive">{cancelError}</p>}
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {visibleShifts.map((shift) => (
           <FacilityShiftCard
             key={shift.id}

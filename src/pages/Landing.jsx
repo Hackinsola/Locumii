@@ -577,7 +577,7 @@ function Landing() {
 
       {/* ── Value: two audiences ──────────────────────────────────────── */}
       <section id="professionals" className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6 sm:py-20">
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <Reveal className="flex flex-col gap-5">
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -587,7 +587,7 @@ function Landing() {
                 Get verified once. Bid in taps. Get paid on time.
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <ValueCard icon={Search} title="Browse real shifts">
                 Filter open shifts by city, role, date and minimum pay — no group chats to scroll.
               </ValueCard>
@@ -613,7 +613,7 @@ function Landing() {
                 Post a shift. Get qualified bids. Confirm and done.
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <ValueCard icon={CalendarClock} title="Post in minutes">
                 Set the role, time and pay rate; reach verified professionals across all six FCT
                 area councils.

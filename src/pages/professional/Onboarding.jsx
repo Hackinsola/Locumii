@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Activity,
   ArrowRight,
+  Camera,
   Check,
   FlaskConical,
   Phone,
@@ -25,8 +26,11 @@ import {
   validateCouncilRegNumber,
   validateNigerianPhone,
 } from '@/utils/validators';
-import { useSaveProfessionalProfile } from '@/hooks/useProfile';
+import { useSaveProfessionalProfile, useUploadAvatar } from '@/hooks/useProfile';
 import { cn } from '@/lib/utils';
+
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // mirrors the avatars bucket limit
+const AVATAR_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 const SPECIALTY_VALUES = PROFESSIONAL_SPECIALTIES.map((item) => item.value);
 const SPECIALTY_ICONS = {
@@ -55,6 +59,9 @@ const BIO_TEMPLATES = [
 function Onboarding() {
   const navigate = useNavigate();
   const { saveProfile, loading } = useSaveProfessionalProfile();
+  const { uploadAvatar, loading: uploadingAvatar } = useUploadAvatar();
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [form, setForm] = useState({
     fullName: '',
     specialty: '',
@@ -88,6 +95,29 @@ function Onboarding() {
   function applyTemplate(template) {
     setActiveTemplate(template.label);
     update('bio', template.text);
+  }
+
+  function handlePhotoSelect(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    if (!AVATAR_MIME_TYPES.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, avatar: 'Use a JPG, PNG or WebP image.' }));
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      setErrors((prev) => ({ ...prev, avatar: 'The photo must be 5 MB or smaller.' }));
+      return;
+    }
+    setErrors((prev) => ({ ...prev, avatar: undefined }));
+    setAvatarFile(file);
+    setAvatarPreview((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return URL.createObjectURL(file);
+    });
   }
 
   function validate() {
@@ -139,6 +169,15 @@ function Onboarding() {
     if (error) {
       setSubmitError(error.message ?? 'Could not save your profile. Please try again.');
       return;
+    }
+    // Photo is optional; upload after the profile row exists. On failure, stay on
+    // the page — pressing Continue again retries both (saveProfile is an upsert).
+    if (avatarFile) {
+      const { error: avatarError } = await uploadAvatar(avatarFile);
+      if (avatarError) {
+        setSubmitError('Your profile was saved, but the photo upload failed. Try again or add it later from My Profile.');
+        return;
+      }
     }
     navigate('/professional/documents');
   }
@@ -214,6 +253,39 @@ function Onboarding() {
           {/* Personal details */}
           <Reveal className="flex flex-col gap-4" delay={60}>
             <SectionLabel>Your details</SectionLabel>
+            <Field label="Profile photo (optional)" error={errors.avatar}>
+              <div className="flex items-center gap-4">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt="Your profile photo preview"
+                    className="size-20 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="flex size-20 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Camera className="size-7" aria-hidden="true" />
+                  </span>
+                )}
+                <div className="flex flex-col gap-1">
+                  <label
+                    htmlFor="avatar-input"
+                    className="cursor-pointer text-sm font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    {avatarFile ? 'Change photo' : 'Add a photo'}
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    Helps facilities recognise you. JPG, PNG or WebP, max 5 MB.
+                  </p>
+                  <input
+                    id="avatar-input"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handlePhotoSelect}
+                  />
+                </div>
+              </div>
+            </Field>
             <Field label="Full name" error={errors.fullName}>
               <Input
                 name="fullName"
@@ -341,10 +413,10 @@ function Onboarding() {
             size="lg"
             className="w-full sm:w-auto"
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || uploadingAvatar}
           >
-            {loading ? 'Saving…' : 'Continue'}
-            {!loading && <ArrowRight className="size-4" aria-hidden="true" />}
+            {loading || uploadingAvatar ? 'Saving…' : 'Continue'}
+            {!(loading || uploadingAvatar) && <ArrowRight className="size-4" aria-hidden="true" />}
           </Button>
         </div>
       </div>

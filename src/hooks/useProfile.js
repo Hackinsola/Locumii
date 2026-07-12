@@ -6,7 +6,16 @@ import { useAuthStore } from '@/store/authStore';
 // are never selected for display (see code-standards.md — never SELECT *).
 // council_reg_number is shown on the profile (Feature-specs/04 Profile View).
 const PROFESSIONAL_PROFILE_SELECT =
-  'user_id, full_name, specialty, council_reg_number, years_experience, bio, preferred_cities, phone, available_for_locum, availability, is_verified, avg_rating, created_at';
+  'user_id, full_name, specialty, council_reg_number, years_experience, bio, preferred_cities, phone, available_for_locum, availability, avatar_path, is_verified, avg_rating, created_at';
+
+// Public URL for a photo in the public `avatars` bucket. Plain function (not a
+// hook): getPublicUrl is synchronous string construction, no network call.
+export function avatarUrl(avatarPath) {
+  if (!avatarPath) {
+    return null;
+  }
+  return supabase.storage.from('avatars').getPublicUrl(avatarPath).data.publicUrl;
+}
 // cac_number is sensitive and is intentionally excluded from the public view.
 const FACILITY_PROFILE_SELECT =
   'user_id, facility_name, facility_type, address, city, state, contact_name, is_verified, avg_rating, created_at';
@@ -179,6 +188,55 @@ export function useSaveProfessionalProfile() {
   );
 
   return { saveProfile, loading, error };
+}
+
+// Uploads a profile photo to the public `avatars` bucket and records its path on
+// the professional's row. Timestamped filename so the public URL changes on every
+// replacement (no stale CDN/browser cache). Requires the profile row to exist —
+// callers upload after saveProfile has run.
+export function useUploadAvatar() {
+  const userId = useAuthStore((state) => state.userId);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const uploadAvatar = useCallback(
+    async (file) => {
+      setLoading(true);
+      setError(null);
+      try {
+        if (!userId) {
+          throw new Error('You must be signed in to upload a photo.');
+        }
+        const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase();
+        const avatarPath = `${userId}/avatar-${Date.now()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(avatarPath, file, { upsert: true, contentType: file.type });
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { error: updateError } = await supabase
+          .from('professional_profiles')
+          .update({ avatar_path: avatarPath })
+          .eq('user_id', userId);
+        if (updateError) {
+          throw updateError;
+        }
+
+        return { avatarPath, error: null };
+      } catch (caught) {
+        setError(caught);
+        return { avatarPath: null, error: caught };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [userId]
+  );
+
+  return { uploadAvatar, loading, error };
 }
 
 // Updates only the availability-related columns on the current professional's row

@@ -25,7 +25,12 @@ import VerifiedBadge from '@/components/profile/VerifiedBadge';
 import AvailabilityCalendar from '@/components/profile/AvailabilityCalendar';
 import { FCT_CITIES, PROFESSIONAL_SPECIALTIES } from '@/constants/options';
 import { COUNCIL_REG_HINTS, validateCouncilRegNumber } from '@/utils/validators';
-import { useProfessionalProfile, useSaveProfessionalProfile } from '@/hooks/useProfile';
+import {
+  avatarUrl,
+  useProfessionalProfile,
+  useSaveProfessionalProfile,
+  useUploadAvatar,
+} from '@/hooks/useProfile';
 import { useOwnCredentials } from '@/hooks/useCredentials';
 import { useProfessionalEarnings } from '@/hooks/usePayments';
 import { useProfessionalBids } from '@/hooks/useBids';
@@ -99,12 +104,39 @@ function MyProfile() {
   const { earnings } = useProfessionalEarnings();
   const { bids } = useProfessionalBids();
   const { saveProfile, loading: saving } = useSaveProfessionalProfile();
+  const { uploadAvatar, loading: uploadingAvatar } = useUploadAvatar();
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [saveError, setSaveError] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [photoError, setPhotoError] = useState(null);
+
+  // Replace the profile photo as soon as a file is chosen (the row already
+  // exists here, unlike onboarding where the upload waits for saveProfile).
+  async function handlePhotoSelect(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) {
+      return;
+    }
+    setPhotoError(null);
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      setPhotoError('Use a JPG, PNG or WebP image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('The photo must be 5 MB or smaller.');
+      return;
+    }
+    const { error: avatarError } = await uploadAvatar(file);
+    if (avatarError) {
+      setPhotoError('Could not upload the photo. Please try again.');
+      return;
+    }
+    refetch();
+  }
 
   // Colour the availability calendar: accepted upcoming shifts are "booked", pending
   // bids are "pending".
@@ -225,7 +257,30 @@ function MyProfile() {
           {/* Identity card */}
           <Card>
             <CardContent className="flex flex-col items-center gap-2 py-2 text-center">
-              <InitialsAvatar name={profile.full_name} size="xl" />
+              <InitialsAvatar
+                name={profile.full_name}
+                src={avatarUrl(profile.avatar_path)}
+                size="xl"
+              />
+              <label
+                htmlFor="my-profile-avatar-input"
+                className="cursor-pointer text-xs font-medium text-primary underline-offset-2 hover:underline"
+              >
+                {uploadingAvatar
+                  ? 'Uploading…'
+                  : profile.avatar_path
+                    ? 'Change photo'
+                    : 'Add a photo'}
+              </label>
+              <input
+                id="my-profile-avatar-input"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handlePhotoSelect}
+                disabled={uploadingAvatar}
+              />
+              {photoError && <p className="text-xs text-destructive">{photoError}</p>}
               <div className="flex flex-col items-center gap-1">
                 <h1 className="text-xl font-bold tracking-tight text-foreground">
                   {profile.full_name}

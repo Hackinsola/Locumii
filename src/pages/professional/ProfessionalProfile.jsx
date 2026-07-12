@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import RatingStars from '@/components/profile/RatingStars';
 import RatingList from '@/components/profile/RatingList';
 import VerifiedBadge from '@/components/profile/VerifiedBadge';
-import { useProfessionalProfile } from '@/hooks/useProfile';
+import InitialsAvatar from '@/components/ui/InitialsAvatar';
+import { avatarUrl, useProfessionalProfile } from '@/hooks/useProfile';
 import { useProfessionalCredentials, useCredentialDocumentUrl } from '@/hooks/useCredentials';
 import { useUserRatings } from '@/hooks/useRatings';
 import { CREDENTIAL_DOC_TYPES, PROFESSIONAL_SPECIALTIES } from '@/constants/options';
@@ -71,14 +72,23 @@ function ProfessionalProfile() {
           <>
             <Card>
               <CardHeader>
-                <div className="flex flex-wrap items-center gap-2">
-                  <CardTitle className="text-xl">{profile.full_name}</CardTitle>
-                  <VerifiedBadge verified={profile.is_verified} />
+                <div className="flex items-center gap-4">
+                  <InitialsAvatar
+                    name={profile.full_name}
+                    src={avatarUrl(profile.avatar_path)}
+                    size="lg"
+                  />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CardTitle className="text-xl">{profile.full_name}</CardTitle>
+                      <VerifiedBadge verified={profile.is_verified} />
+                    </div>
+                    {specialtyLabel && (
+                      <p className="text-sm text-muted-foreground">{specialtyLabel}</p>
+                    )}
+                    <RatingStars value={profile.avg_rating} reviewCount={ratings.length} />
+                  </div>
                 </div>
-                {specialtyLabel && (
-                  <p className="text-sm text-muted-foreground">{specialtyLabel}</p>
-                )}
-                <RatingStars value={profile.avg_rating} reviewCount={ratings.length} />
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <DetailRow

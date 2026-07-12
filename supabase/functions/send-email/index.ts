@@ -74,11 +74,14 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'Email is not configured on the server.' }, 500);
   }
 
-  // Server-only: the caller's JWT must carry role 'service_role' (see send-sms for
-  // the full rationale — verify_jwt has already checked the signature).
+  // Server-only. Two accepted credentials: (a) the platform-injected service key
+  // verbatim — on newer projects this is the sb_secret_... format, NOT a JWT, so
+  // it can't be checked by claim (this is how send-shift-reminder calls us);
+  // (b) any project JWT carrying the service_role claim — the legacy key stored
+  // in Vault for the pg_net trigger calls. A user/anon token matches neither.
   const authHeader = req.headers.get('Authorization') ?? '';
   const token = authHeader.replace(/^Bearer\s+/i, '');
-  if (roleFromJwt(token) !== 'service_role') {
+  if (token !== serviceRoleKey && roleFromJwt(token) !== 'service_role') {
     return json({ error: 'Forbidden.' }, 403);
   }
 

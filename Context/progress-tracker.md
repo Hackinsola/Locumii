@@ -6,11 +6,11 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- **Phase 0 — Foundation & Specification**
+- **Phase 2 — Feature-complete MVP: live testing & launch prep** (all core marketplace features are built and deployed to www.locumii.com; payments run in simulate mode pending Paystack business activation)
 
 ## Current Goal
 
-- Complete all planning and specification documents before writing a single line of application code.
+- Prove the full marketplace loop end-to-end on the live site (post → bid → accept → check-in → dual confirm → payout, with email notifications at each step), then clear the launch blockers: real Paystack transfers, the payments launch guard, a working support inbox, and the visual design pass.
 
 -----
 
@@ -72,7 +72,7 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- _(nothing in progress)_
+- **Live end-to-end testing on www.locumii.com** — test-mode posting (no charge), email notifications, profile photos, credential viewing, payout retry, and the freshly activated shift-reminder cron (first live reminder verification pending; test shift `fede12bf…` staged 2026-07-12).
 
 > **Editor chrome — DELETED (2026-06-04, user decision).** `src/components/editor/*` and `Context/Feature-specs/02-editor.md` were leftover Vite-starter scaffolding (a generic text-editor navbar + collapsible sidebar) that never fit the shift marketplace and stayed unmounted. The app's chrome is the shared top nav (design-phase step 2). Removed to clear dead code.
 
@@ -80,23 +80,25 @@ Update this file after every meaningful implementation change.
 
 ## Next Up
 
-1. **`dev-setup.md`** — Local environment setup: Node version, Supabase CLI install, environment variables required, how to run migrations, how to start the dev server.
-1. **Supabase Auth config (dashboard)** — Confirm email/password provider is enabled and SMTP (Resend) is wired. The DB schema and private `credentials` bucket are done; this is the remaining piece of the original "project initialisation" item.
-1. **SMS-on-approval (deferred from credential review)** — Fire an SMS to the professional when their credentials are approved. Needs the `send-sms` Edge Function + Termii (see Open Questions). The review panel currently flips `is_verified` without notifying.
-1. **Paystack payment at posting** — Its own unit (needs a Paystack account/keys). Collect the shift fee + 10% upfront via the inline popup, verify server-side in an Edge Function, then store `paystack_reference` / mark the shift payable. Currently shifts are created `open` with no payment.
-1. **Edge Functions** — `auto-cancel-bids`, `send-shift-reminder`, `release-payment`, `send-sms` (Deno/TS). Several deferred items above depend on these. Needs Termii + Paystack keys.
-1. **Payment release on completion** — *Check-in + dual confirmation are done (above).* Remaining: the `release-payment` step that pays out the professional (minus 10%) once a shift is `completed`. Depends on Paystack (Transfer API, server-side only — INV-01) and the professional's bank details.
+*(rewritten 2026-07-12 — the previous list was fully delivered: payment at posting, release-payment, all Edge Functions, and outbound notifications, which shipped as EMAIL rather than SMS. See Session Notes.)*
+
+1. **Payments launch guard** — a `PAYMENTS_LIVE=true` master secret that makes `verify-payment` and `release-payment` ignore `PAYMENTS_SIMULATE` entirely, so one switch turns real money on at launch; plus a cleanup script that purges `paystack_reference like 'SIMULATED-%'` test shifts/transactions before launch.
+2. **Paystack business activation** (user, external — Compliance review) → then the first REAL payout test and a real retry of the failed June transfer.
+3. **Support inbox receiving** — ImprovMX (or Zoho) MX + forwarding so `support@locumii.com` (the Reply-To on every notification email) stops bouncing. Namecheap DNS is already on Custom MX; two MX rows + one SPF TXT remain.
+4. **Supabase Auth hardening (dashboard)** — enable leaked-password protection (advisor WARN); confirm the auth-email SMTP sender.
+5. **Design phase** — the deliberately deferred full visual pass over every screen (see [ui-deferred] decision); semantic tokens are in place so the re-skin is one coherent change.
+6. **`dev-setup.md`** — local environment setup doc (Node version, env vars, migrations, dev server). Still unwritten; useful before any second developer joins.
 
 -----
 
 ## Open Questions
 
-- **App name confirmed?** “Locumii” is the working title used across all documents. Confirm before buying a domain or setting up Supabase project name.
-- **Abuja-only launch geography** — All spec documents scope the MVP to FCT. Confirm this before building location filters (hardcoded city list vs. open text field).
+- **App name confirmed?** — ✅ Resolved. Locumii it is: locumii.com bought (Namecheap), live at www.locumii.com, domain verified in Resend for email sending.
+- **Abuja-only launch geography** — ✅ Resolved by implementation: the six FCT area councils are a hardcoded list (`FCT_CITIES`); Lagos expansion is Phase 2.
 - **Admin user creation** — ✅ Resolved. First admin is `abdulhafizakinsola@gmail.com`, seeded directly in the DB (see Completed). Future admins follow the same direct-seed approach.
-- **Termii vs. alternative SMS gateway** — Termii is specified in `architecture.md`. Confirm account is created and API key is available before building any Edge Function that calls `send-sms`.
+- **Termii vs. alternative SMS gateway** — ✅ Superseded (2026-07-12): outbound notifications are EMAIL via Resend (`notifications@locumii.com`, Reply-To `support@`). The SMS pipeline is parked, not removed; Termii's sender-ID approval was the blocker if it's ever revived.
 - **Professional types** — Four types are in scope: Medical Doctor, Nurse, Pharmacist, Medical Laboratory Scientist. Confirm whether NYSC-posted health workers are treated as a separate type or fall under one of these four.
-- **Paystack escrow mechanism** — Paystack does not have a native escrow product. The escrow model described in the spec is implemented by collecting the full amount upfront (Paystack inline) and holding it in the platform’s Paystack balance until the `release-payment` Edge Function initiates a transfer. Confirm this approach is understood before building the payment flow.
+- **Paystack escrow mechanism** — ✅ Understood and implemented: gross collected upfront via inline popup (verify-payment), held in the platform balance, released as a net transfer by release-payment after dual confirmation. Only Paystack business activation (Transfers) remains before real money moves.
 
 -----
 

@@ -49,7 +49,8 @@ function ShiftCard({ shift, urgent = false, badge = false, footer }) {
             <div className="min-w-0">
               <h3 className="truncate text-sm font-semibold text-foreground">{facilityName}</h3>
               <p className="truncate text-xs text-muted-foreground">
-                {shift.role_required} · {shift.city}
+                {shift.role_required} ·{' '}
+                {facility?.address ? `${facility.address}, ${shift.city}` : shift.city}
               </p>
             </div>
             {badge && <StatusBadge status={shift.status} />}

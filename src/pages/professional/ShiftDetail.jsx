@@ -234,9 +234,11 @@ function ShiftDetail() {
                 >
                   {facilityName}
                 </button>
-                <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
-                  {shift.city}
+                <p className="flex items-start gap-1 text-sm text-muted-foreground">
+                  <MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    {facility?.address ? `${facility.address}, ${shift.city}` : shift.city}
+                  </span>
                 </p>
               </div>
             </CardContent>

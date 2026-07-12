@@ -46,7 +46,10 @@ function NotificationBell({ notifications, unreadCount, onItemClick, onMarkAllRe
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-md border border-border bg-card shadow-md">
+        /* Mobile: full-width fixed sheet under the header (an absolute w-80
+           dropdown anchored to the bell ran off the left edge of the screen).
+           sm+: the usual anchored dropdown. */
+        <div className="fixed inset-x-3 top-16 z-50 overflow-hidden rounded-md border border-border bg-card shadow-md sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-80">
           <div className="flex items-center justify-between border-b border-border px-4 py-2">
             <span className="text-sm font-medium text-foreground">Notifications</span>
             {unreadCount > 0 && (

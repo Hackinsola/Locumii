@@ -41,9 +41,20 @@ function CredentialQueue() {
   const groups = useMemo(() => groupByProfessional(credentials), [credentials]);
 
   async function handleView(storagePath) {
+    // Sync open inside the tap gesture — window.open after an await is treated
+    // as a popup and blocked on mobile browsers (see ProfessionalProfile).
+    const viewer = window.open('', '_blank', 'noopener,noreferrer');
     const { url } = await getDocumentUrl(storagePath);
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+    if (!url) {
+      if (viewer) {
+        viewer.close();
+      }
+      return;
+    }
+    if (viewer) {
+      viewer.location = url;
+    } else {
+      window.location.assign(url);
     }
   }
 

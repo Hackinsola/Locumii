@@ -1,3 +1,4 @@
+import { Suspense, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Briefcase,
@@ -49,6 +50,46 @@ const LINKS_BY_ROLE = {
   ],
 };
 
+// Page chunks to warm per role, shortly after sign-in. Tab pages are lazy-loaded
+// (App.jsx), so without this the FIRST visit to each tab waits on a network fetch —
+// which reads as a slow, choppy tab switch on mobile. Prefetching resolves the same
+// chunk URLs Vite gave lazy(), so the later navigation hits the module cache.
+const PREFETCH_BY_ROLE = {
+  professional: [
+    () => import('@/pages/professional/Dashboard'),
+    () => import('@/pages/professional/MyShifts'),
+    () => import('@/pages/professional/Earnings'),
+    () => import('@/pages/professional/MyProfile'),
+  ],
+  facility: [
+    () => import('@/pages/facility/Dashboard'),
+    () => import('@/pages/facility/MyShifts'),
+    () => import('@/pages/facility/PostShift'),
+    () => import('@/pages/facility/Transactions'),
+    () => import('@/pages/facility/MyProfile'),
+  ],
+  admin: [
+    () => import('@/pages/admin/Dashboard'),
+    () => import('@/pages/admin/CredentialQueue'),
+    () => import('@/pages/admin/FacilityQueue'),
+    () => import('@/pages/admin/UserManager'),
+  ],
+};
+
+// Shown inside the content area while a tab's chunk downloads — the header and
+// bottom nav stay mounted, so switching tabs never blanks the whole screen.
+function ContentFallback() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <div
+        className="size-6 animate-spin rounded-full border-2 border-muted border-t-primary"
+        role="status"
+        aria-label="Loading"
+      />
+    </div>
+  );
+}
+
 // Layout route wrapping every authenticated page: renders the shared nav above the
 // routed page. Auth + role gating still lives on each child route (ProtectedRoute),
 // so this only adds chrome — and only once the user is signed in. Mounting
@@ -58,6 +99,20 @@ function AppLayout() {
   const location = useLocation();
   const { isInitialized, isAuthenticated, role, email, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+
+  // Warm this role's tab chunks once things are idle (after the current page has
+  // had its moment). Failures are ignored — the lazy() fetch remains the fallback.
+  useEffect(() => {
+    if (!isAuthenticated || !role) {
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      (PREFETCH_BY_ROLE[role] ?? []).forEach((load) => {
+        load().catch(() => {});
+      });
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [isAuthenticated, role]);
 
   if (!isInitialized) {
     return null;
@@ -143,9 +198,13 @@ function AppLayout() {
           </div>
         </header>
 
-        {/* Extra bottom padding on mobile so the fixed bottom nav never covers content. */}
+        {/* Extra bottom padding on mobile so the fixed bottom nav never covers content.
+            The Suspense boundary here (not around the whole router) keeps the header
+            and tab bar mounted while a page chunk loads. */}
         <div className="pb-16 md:pb-0">
-          <Outlet />
+          <Suspense fallback={<ContentFallback />}>
+            <Outlet />
+          </Suspense>
         </div>
       </div>
 

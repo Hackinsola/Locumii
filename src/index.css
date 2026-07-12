@@ -1,7 +1,20 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+
+/* Geist Variable, self-hosted (copied from @fontsource-variable/geist into
+   public/fonts and preloaded in index.html). font-display: optional — if the
+   font isn't ready at first paint the page keeps the fallback for the whole
+   visit instead of swapping seconds later and re-flowing every line of text
+   (the "text adjusts itself after 2s" jank on slow mobile connections). */
+@font-face {
+  font-family: 'Geist Variable';
+  font-style: normal;
+  font-display: optional;
+  font-weight: 100 900;
+  src: url('/fonts/geist-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -173,6 +186,12 @@
     }
   body {
     @apply bg-background text-foreground;
+    /* Nothing may widen the page beyond the viewport: any accidental overflow
+       (long unbroken string, oversized element) gets clipped instead of making
+       the whole page pannable sideways, which shows up as boxes of uneven
+       width on phones. Long tokens wrap rather than push their box wider. */
+    overflow-x: clip;
+    overflow-wrap: break-word;
     }
   html {
     @apply font-sans;

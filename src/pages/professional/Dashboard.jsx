@@ -10,7 +10,7 @@ import RatingPromptBanner from '@/components/ratings/RatingPromptBanner';
 import Reveal from '@/components/layout/Reveal';
 import PageContainer from '@/components/layout/PageContainer';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfessionalProfile } from '@/hooks/useProfile';
+import { avatarUrl, useProfessionalProfile } from '@/hooks/useProfile';
 import { useOpenShifts } from '@/hooks/useShifts';
 import { usePendingRatings } from '@/hooks/useRatings';
 import { PROFESSIONAL_SPECIALTIES, FCT_CITIES } from '@/constants/options';
@@ -75,7 +75,7 @@ function Dashboard() {
           className="pointer-events-none absolute -top-8 -left-6 size-40 rounded-full bg-primary/15 blur-3xl"
         />
         <div className="relative flex items-center gap-3">
-          <InitialsAvatar name={profile?.full_name} size="lg" />
+          <InitialsAvatar name={profile?.full_name} src={avatarUrl(profile?.avatar_path)} size="lg" />
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-bold tracking-tight text-foreground">
               Hi, {firstName}

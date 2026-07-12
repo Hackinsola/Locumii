@@ -14,7 +14,8 @@
 //
 // Secrets: RESEND_API_KEY (required), EMAIL_FROM (optional; defaults to Resend's
 // shared onboarding sender, which only delivers to the Resend account owner's
-// address until a domain is verified).
+// address until a domain is verified), EMAIL_REPLY_TO (optional; defaults to the
+// support address so replies to automated notifications reach a human).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -68,6 +69,7 @@ Deno.serve(async (req: Request) => {
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const resendApiKey = Deno.env.get('RESEND_API_KEY');
   const from = Deno.env.get('EMAIL_FROM') ?? 'Locumii <onboarding@resend.dev>';
+  const replyTo = Deno.env.get('EMAIL_REPLY_TO') ?? 'support@locumii.com';
   if (!supabaseUrl || !serviceRoleKey || !resendApiKey) {
     return json({ error: 'Email is not configured on the server.' }, 500);
   }
@@ -108,7 +110,7 @@ Deno.serve(async (req: Request) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${resendApiKey}`,
         },
-        body: JSON.stringify({ from, to: [email], subject, text: message }),
+        body: JSON.stringify({ from, to: [email], subject, text: message, reply_to: replyTo }),
         signal: controller.signal,
       });
       resendData = await response.json().catch(() => ({}));

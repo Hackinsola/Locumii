@@ -10,9 +10,9 @@ import {
   useResolveBankAccount,
   useSupportedBanks,
 } from '@/hooks/usePayments';
-import { formatNaira } from '@/utils/money';
+import { formatNaira, formatNairaCompact } from '@/utils/money';
 import { formatDate } from '@/utils/dateTime';
-import { cn } from '@/lib/utils';
+import StatTile from '@/components/ui/StatTile';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
 
@@ -21,38 +21,6 @@ const selectClasses =
 
 function single(embedded) {
   return Array.isArray(embedded) ? embedded[0] : embedded;
-}
-
-function StatCard({ label, value, accent = false, icon: Icon }) {
-  return (
-    <Card>
-      <CardContent className="flex items-start justify-between gap-2">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            {label}
-          </span>
-          <span
-            className={cn(
-              'font-mono text-xl font-semibold',
-              accent ? 'text-brand-accent' : 'text-foreground'
-            )}
-          >
-            {value}
-          </span>
-        </div>
-        {Icon && (
-          <span
-            className={cn(
-              'flex size-8 shrink-0 items-center justify-center rounded-lg',
-              accent ? 'bg-brand-accent/10 text-brand-accent' : 'bg-primary/10 text-primary'
-            )}
-          >
-            <Icon className="size-4" aria-hidden="true" />
-          </span>
-        )}
-      </CardContent>
-    </Card>
-  );
 }
 
 function Earnings() {
@@ -123,16 +91,18 @@ function Earnings() {
     <PageContainer>
         <PageHeader title="Earnings" subtitle="Your payout account and earnings." />
 
-        <div className="grid grid-cols-3 gap-3">
-          <StatCard
-            label="Total earned"
-            value={formatNaira(earnings.totalEarnedKobo)}
-            accent
-            icon={Wallet}
-          />
-          <StatCard label="Pending" value={formatNaira(earnings.pendingKobo)} icon={Clock} />
-          <StatCard label="Completed" value={earnings.completedCount} icon={CheckCircle2} />
-        </div>
+        <Card>
+          <CardContent className="grid grid-cols-3 divide-x divide-border">
+            <StatTile
+              icon={Wallet}
+              value={formatNairaCompact(earnings.totalEarnedKobo)}
+              label="Total earned"
+              accent
+            />
+            <StatTile icon={Clock} value={formatNairaCompact(earnings.pendingKobo)} label="Pending" />
+            <StatTile icon={CheckCircle2} value={earnings.completedCount} label="Completed" />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

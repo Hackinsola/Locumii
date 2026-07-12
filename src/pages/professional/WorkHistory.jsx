@@ -3,24 +3,13 @@ import { ArrowLeft, Building2, Clock, History } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import ShiftCard from '@/components/shifts/ShiftCard';
 import EmptyState from '@/components/ui/EmptyState';
+import StatTile from '@/components/ui/StatTile';
 import PageContainer from '@/components/layout/PageContainer';
 import { useProfessionalBids } from '@/hooks/useBids';
 import { shiftDurationHours } from '@/utils/dateTime';
 
 function single(embedded) {
   return Array.isArray(embedded) ? embedded[0] : embedded;
-}
-
-function StatTile({ icon: Icon, value, label }) {
-  return (
-    <div className="flex flex-col items-center gap-1 px-2 py-1 text-center">
-      <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
-        <Icon className="size-4" aria-hidden="true" />
-      </span>
-      <span className="text-lg font-bold text-foreground">{value}</span>
-      <span className="text-xs text-muted-foreground">{label}</span>
-    </div>
-  );
 }
 
 function WorkHistory() {

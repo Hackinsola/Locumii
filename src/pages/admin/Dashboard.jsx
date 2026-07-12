@@ -4,18 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardHero from '@/components/dashboard/DashboardHero';
 import PageContainer from '@/components/layout/PageContainer';
 import { useAdminDashboard } from '@/hooks/useAdmin';
-import { formatNaira } from '@/utils/money';
+import { formatNairaCompact } from '@/utils/money';
 import { cn } from '@/lib/utils';
 
 function StatCard({ label, value, icon: Icon, accent = false }) {
   return (
     <Card>
       <CardContent className="flex items-start justify-between gap-2">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {label}
           </span>
-          <span className={cn('text-2xl font-bold', accent ? 'text-brand-accent' : 'text-foreground')}>
+          <span
+            className={cn(
+              'max-w-full truncate text-xl font-bold sm:text-2xl',
+              accent ? 'text-brand-accent' : 'text-foreground'
+            )}
+          >
             {value}
           </span>
         </div>
@@ -79,7 +84,7 @@ function Dashboard() {
             <StatCard label="Pending credentials" value={counts.pendingCredentials} icon={FileClock} />
             <StatCard label="Pending facilities" value={counts.pendingFacilities} icon={Building2} />
             <StatCard label="Total users" value={counts.totalUsers} icon={Users} />
-            <StatCard label="Total revenue" value={formatNaira(counts.totalRevenue)} icon={Wallet} accent />
+            <StatCard label="Total revenue" value={formatNairaCompact(counts.totalRevenue)} icon={Wallet} accent />
           </div>
 
           <Card>

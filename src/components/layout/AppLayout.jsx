@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Briefcase,
   Building2,
@@ -55,6 +55,7 @@ const LINKS_BY_ROLE = {
 // useNotifications here gives the app its single realtime subscription.
 function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isInitialized, isAuthenticated, role, email, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
@@ -65,6 +66,13 @@ function AppLayout() {
   // Signed out: render the routed child (its ProtectedRoute redirects to login).
   // No chrome until authenticated.
   if (!isAuthenticated) {
+    return <Outlet />;
+  }
+
+  // Onboarding is a focused one-time flow: no nav chrome. The tabs all lead to
+  // pages that assume a completed profile, and the fixed mobile tab bar would
+  // cover the flow's own sticky bottom CTA.
+  if (location.pathname.endsWith('/onboarding')) {
     return <Outlet />;
   }
 

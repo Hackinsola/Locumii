@@ -40,12 +40,25 @@ function ProfessionalProfile() {
 
   async function handleViewDocument(storagePath) {
     setDocumentError(null);
+    // Open the tab synchronously inside the tap gesture: mobile browsers block a
+    // window.open that happens after an await (reads as a popup), which made the
+    // View button silently do nothing on phones. The blank tab is retargeted at
+    // the signed URL once it arrives; if even the sync open was blocked, fall
+    // back to navigating this tab.
+    const viewer = window.open('', '_blank', 'noopener,noreferrer');
     const { url, error: urlError } = await getDocumentUrl(storagePath);
     if (urlError || !url) {
+      if (viewer) {
+        viewer.close();
+      }
       setDocumentError('Could not open this document. Please try again.');
       return;
     }
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (viewer) {
+      viewer.location = url;
+    } else {
+      window.location.assign(url);
+    }
   }
 
   const specialtyLabel = profile?.specialty

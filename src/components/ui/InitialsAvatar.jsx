@@ -16,7 +16,9 @@ function initialsFrom(name) {
 // Circular initials badge — the recurring "clinic mark" from the LAI interface, used
 // on job cards, the profile header, and the shift-detail facility header. Tinted with
 // the brand surface by default; pass `tone="accent"` for the amber payout context.
-function InitialsAvatar({ name, size = 'md', tone = 'brand', className }) {
+// Pass `src` (e.g. a professional's profile photo URL) to show the image instead;
+// initials remain the fallback whenever src is absent.
+function InitialsAvatar({ name, src, size = 'md', tone = 'brand', className }) {
   const sizes = {
     sm: 'size-9 text-xs',
     md: 'size-11 text-sm',
@@ -28,6 +30,15 @@ function InitialsAvatar({ name, size = 'md', tone = 'brand', className }) {
     accent: 'bg-brand-accent/15 text-brand-accent',
     neutral: 'bg-muted text-muted-foreground',
   };
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name ? `Photo of ${name}` : 'Profile photo'}
+        className={cn('shrink-0 rounded-full object-cover', sizes[size], className)}
+      />
+    );
+  }
   return (
     <span
       aria-hidden="true"

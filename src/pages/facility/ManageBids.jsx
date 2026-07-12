@@ -11,6 +11,7 @@ import FacilityShiftCard from '@/components/shifts/FacilityShiftCard';
 import EmptyState from '@/components/ui/EmptyState';
 import { PROFESSIONAL_SPECIALTIES } from '@/constants/options';
 import { useAcceptBid, useShiftBids } from '@/hooks/useBids';
+import { avatarUrl } from '@/hooks/useProfile';
 import { useShift } from '@/hooks/useShifts';
 import { useConfirmCompletion, useShiftConfirmation } from '@/hooks/useShiftConfirmation';
 import { useShiftRating, useSubmitRating } from '@/hooks/useRatings';
@@ -234,7 +235,11 @@ function ManageBids() {
           return (
             <Card key={bid.id}>
               <CardContent className="flex items-center gap-3">
-                <InitialsAvatar name={professional?.full_name} size="md" />
+                <InitialsAvatar
+                  name={professional?.full_name}
+                  src={avatarUrl(professional?.avatar_path)}
+                  size="md"
+                />
                 <div className="min-w-0 flex-1">
                   <button
                     type="button"

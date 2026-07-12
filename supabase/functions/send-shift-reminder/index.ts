@@ -1,14 +1,15 @@
 // send-shift-reminder
 // Cron-triggered every 15 minutes. Finds filled shifts starting in ~2 hours and
-// texts both parties a reminder. Unlike the event reminders, there is no DB row
-// change to trigger from, so this function drives send-sms directly and passes the
-// notif* fields for the professional so an in-app notification is also created.
-// Runs entirely server-side with the service-role key.
+// emails both parties a reminder (switched from SMS to email 2026-07-12 with the
+// rest of the notification path — see migration 040). Unlike the event reminders,
+// there is no DB row change to trigger from, so this function drives send-email
+// directly and passes the notif* fields for the professional so an in-app
+// notification is also created. Runs entirely server-side with the service-role key.
 //
 // Server-only: the caller must present the service-role key as the bearer token
 // (the pg_cron job in migration 029 does). Without this gate, verify_jwt only proves
 // the token was signed by this project — which the public anon key also satisfies —
-// so any visitor could trigger duplicate reminder SMS blasts (cost + spam). We check
+// so any visitor could trigger duplicate reminder blasts (cost + spam). We check
 // the role claim rather than an exact key string so it survives key rotation.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -78,9 +79,9 @@ Deno.serve(async (req: Request) => {
 
   const admin = createClient(supabaseUrl, serviceRoleKey);
 
-  async function sendSMS(body: Record<string, unknown>): Promise<void> {
+  async function sendEmail(body: Record<string, unknown>): Promise<void> {
     try {
-      await fetch(`${supabaseUrl}/functions/v1/send-sms`, {
+      await fetch(`${supabaseUrl}/functions/v1/send-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify(body),
       });
     } catch (error) {
-      console.error('send-shift-reminder: send-sms call failed', error);
+      console.error('send-shift-reminder: send-email call failed', error);
     }
   }
 
@@ -97,8 +98,8 @@ Deno.serve(async (req: Request) => {
   const { data: shifts, error } = await admin
     .from('shifts')
     .select(
-      'id, start_time, role_required, ' +
-        'facility_profiles ( facility_name, contact_phone ), ' +
+      'id, start_time, facility_id, role_required, ' +
+        'facility_profiles ( facility_name ), ' +
         'bids ( professional_id, status, professional_profiles ( full_name, specialty ) )'
     )
     .eq('status', 'filled')
@@ -125,13 +126,16 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // Resolve account emails for the accepted professionals and the facilities.
   const professionalIds = [...acceptedByShift.values()].map((a) => a.professionalId);
-  const phoneById = new Map<string, string>();
-  if (professionalIds.length > 0) {
-    const { data: users } = await admin.from('users').select('id, phone').in('id', professionalIds);
+  const facilityIds = rows.map((shift) => shift.facility_id).filter(Boolean);
+  const emailById = new Map<string, string>();
+  const userIds = [...new Set([...professionalIds, ...facilityIds])];
+  if (userIds.length > 0) {
+    const { data: users } = await admin.from('users').select('id, email').in('id', userIds);
     for (const u of users ?? []) {
-      if (u.phone) {
-        phoneById.set(u.id, u.phone);
+      if (u.email) {
+        emailById.set(u.id, u.email);
       }
     }
   }
@@ -146,10 +150,11 @@ Deno.serve(async (req: Request) => {
     const clock = formatTimeWAT(shift.start_time);
 
     // Professional — also creates an in-app notification.
-    const profPhone = phoneById.get(accepted.professionalId);
-    if (profPhone) {
-      await sendSMS({
-        phone: profPhone,
+    const profEmail = emailById.get(accepted.professionalId);
+    if (profEmail) {
+      await sendEmail({
+        email: profEmail,
+        subject: 'Shift reminder',
         message: `Reminder: Your shift at ${facility?.facility_name ?? 'the facility'} starts in 2 hours (${clock}). Good luck!`,
         userId: accepted.professionalId,
         notifType: 'shift_reminder',
@@ -159,10 +164,12 @@ Deno.serve(async (req: Request) => {
       sent += 1;
     }
 
-    // Facility contact — SMS only.
-    if (facility?.contact_phone) {
-      await sendSMS({
-        phone: facility.contact_phone,
+    // Facility account — email only.
+    const facilityEmail = emailById.get(shift.facility_id);
+    if (facilityEmail) {
+      await sendEmail({
+        email: facilityEmail,
+        subject: 'Shift reminder',
         message: `Reminder: ${accepted.fullName}${accepted.specialty ? ` (${accepted.specialty})` : ''} arrives in 2 hours for their shift.`,
       });
       sent += 1;

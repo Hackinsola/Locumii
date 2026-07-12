@@ -89,7 +89,7 @@ export function useShiftBids(shiftId) {
       const { data, error: fetchError } = await supabase
         .from('bids')
         .select(
-          'id, status, submitted_at, professional_id, professional_profiles ( full_name, specialty, is_verified, avg_rating )'
+          'id, status, submitted_at, professional_id, professional_profiles ( full_name, specialty, is_verified, avg_rating, avatar_path )'
         )
         .eq('shift_id', shiftId)
         .order('submitted_at', { ascending: true });

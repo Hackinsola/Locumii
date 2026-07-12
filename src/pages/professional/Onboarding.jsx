@@ -190,7 +190,11 @@ function Onboarding() {
       <div className="relative overflow-hidden">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-20 left-1/2 size-72 -translate-x-1/2 rounded-full bg-radial from-primary/20 to-transparent"
+          className="pointer-events-none absolute -top-20 left-1/2 size-72 -translate-x-1/2 rounded-full"
+          style={{
+            background:
+              'radial-gradient(closest-side, color-mix(in oklab, var(--primary) 20%, transparent), transparent)',
+          }}
         />
         <div className="relative flex flex-col items-center gap-3 px-4 pt-10 pb-2 text-center">
           <Logo />

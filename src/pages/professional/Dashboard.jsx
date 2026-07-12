@@ -72,7 +72,11 @@ function Dashboard() {
       <div className="relative">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-8 -left-6 size-40 rounded-full bg-radial from-primary/15 to-transparent"
+          className="pointer-events-none absolute -top-8 -left-6 size-40 rounded-full"
+          style={{
+            background:
+              'radial-gradient(closest-side, color-mix(in oklab, var(--primary) 15%, transparent), transparent)',
+          }}
         />
         <div className="relative flex items-center gap-3">
           <InitialsAvatar name={profile?.full_name} src={avatarUrl(profile?.avatar_path)} size="lg" />
@@ -139,7 +143,7 @@ function Dashboard() {
               to see jobs near you.
             </NoticeBanner>
           )}
-          {near.length > 0 && <div className="grid gap-3 md:grid-cols-2">{renderCards(near)}</div>}
+          {near.length > 0 && <div className="grid grid-cols-1 gap-3 md:grid-cols-2">{renderCards(near)}</div>}
           {away.length > 0 && (
             <>
               <div className="flex items-center gap-2 rounded-xl bg-brand-accent-light px-4 py-3 text-sm text-brand-accent">
@@ -150,7 +154,7 @@ function Dashboard() {
                     : 'More jobs further away.'}
                 </span>
               </div>
-              <div className="grid gap-3 md:grid-cols-2">{renderCards(away, near.length)}</div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">{renderCards(away, near.length)}</div>
             </>
           )}
           {!loading && near.length === 0 && away.length === 0 && (
@@ -164,7 +168,7 @@ function Dashboard() {
               No open shifts {filter ? `in ${filter} ` : ''}right now. Check back soon.
             </EmptyState>
           )}
-          <div className="grid gap-3 md:grid-cols-2">{renderCards(shifts)}</div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">{renderCards(shifts)}</div>
         </>
       )}
 

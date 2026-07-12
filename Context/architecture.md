@@ -12,11 +12,11 @@
 |**State management**  |Zustand                          |Global client state for auth session, notifications, and shift feed |
 |**Backend / API**     |Supabase (PostgreSQL + PostgREST)|Relational database, auto-generated REST API, and row-level security|
 |**Auth**              |Supabase Auth                    |Email/password authentication; JWT tokens; session management       |
-|**File storage**      |Supabase Storage                 |Credential document uploads (PDFs and images); private buckets      |
-|**Background jobs**   |Supabase Edge Functions (Deno)   |Shift reminders, escrow release triggers, bid auto-cancellation     |
+|**File storage**      |Supabase Storage                 |Credential documents (private bucket) + profile photos (public `avatars` bucket)|
+|**Background jobs**   |Supabase Edge Functions (Deno)   |Payment verify/release, shift reminders (pg_cron), email dispatch   |
 |**Payments**          |Paystack API                     |Upfront payment collection, escrow hold, bank transfer disbursement |
-|**SMS notifications** |Termii API                       |Transactional SMS for Nigerian numbers (MTN, Airtel, Glo, 9mobile)  |
-|**Email**             |Supabase Auth SMTP (Resend)      |Password reset and account confirmation emails                      |
+|**Notifications**     |Resend API (email) + in-app feed |Transactional email from `notifications@locumii.com` (Reply-To `support@`); SMS via Termii is built but PARKED (decision 2026-07-12)|
+|**Email (auth)**      |Supabase Auth SMTP               |Password reset and account confirmation emails                      |
 |**Hosting**           |Vercel                           |Frontend static deployment with automatic preview URLs per branch   |
 |**Environment config**|`.env` files + Vercel env vars   |All secrets and API keys; never committed to version control        |
 
@@ -52,7 +52,7 @@ locumii/
 │   ├── lib/                # Third-party client initialisation; no business logic
 │   │   ├── supabase.js     # Supabase client singleton
 │   │   ├── paystack.js     # Paystack inline payment initialiser
-│   │   └── termii.js       # Termii SMS helper (called via Edge Function only)
+│   │   └── analytics.js    # GA4 page-view helper (Resend/Termii have NO client lib — server-only)
 │   │
 │   ├── store/              # Zustand global state slices
 │   │   ├── authStore.js    # Current user session and role
@@ -66,11 +66,14 @@ locumii/
 ├── supabase/
 │   ├── migrations/         # Sequential SQL migration files; one file per schema change
 │   ├── functions/          # Supabase Edge Functions (Deno/TypeScript)
-│   │   ├── release-payment/        # Triggered after both parties confirm; calls Paystack transfer API
-│   │   ├── send-shift-reminder/    # Cron: fires 2 hours before each accepted shift
-│   │   ├── auto-cancel-bids/       # Triggered after bid acceptance; declines competing bids
-│   │   └── send-sms/               # Internal wrapper around Termii API; called by other functions
-│   └── seed.sql            # Dev-only seed data (test users, sample shifts)
+│   │   ├── verify-payment/         # Verifies the Paystack charge, then creates the shift
+│   │   ├── release-payment/        # After both parties confirm; calls Paystack transfer API
+│   │   ├── paystack-proxy/         # Bank list + account resolution for bank linking
+│   │   ├── cancel-shift/           # Cancels an open/filled shift and refunds
+│   │   ├── send-shift-reminder/    # pg_cron every 15 min: emails both parties ~2h before start
+│   │   ├── send-email/             # Resend wrapper; server-to-server only; logs to email_log
+│   │   └── send-sms/               # Termii wrapper (PARKED — nothing calls it)
+│   └── (no seed.sql — test data is created through the app in simulate mode)
 │
 └── public/                 # Static assets: favicon, og-image, manifest
 ```
@@ -81,7 +84,7 @@ locumii/
 - `components/` may import from `utils/` and other `components/`. It never imports from `hooks/` or `store/`.
 - `hooks/` may import from `lib/` and `utils/`. It never imports from `components/` or `pages/`.
 - `lib/` holds only client initialisation. It has zero business logic.
-- Edge Functions in `supabase/functions/` are the only code that calls Termii and the Paystack Transfer API. No frontend code calls these APIs directly.
+- Edge Functions in `supabase/functions/` are the only code that calls Resend, Termii, and the Paystack Transfer API. No frontend code calls these APIs directly.
 
 -----
 
@@ -94,25 +97,31 @@ Everything that needs to be queried, filtered, joined, or counted lives in the d
 |Table                  |Key Columns                                                                                                                                                                                             |Notes                                                                       |
 |-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 |`users`                |`id`, `email`, `role` (`professional` | `facility` | `admin`), `phone`, `status` (`pending` | `active` | `suspended`)                                                                                   |Mirrors Supabase Auth; `role` and `status` are application-managed          |
-|`professional_profiles`|`user_id`, `full_name`, `specialty`, `council_reg_number`, `years_experience`, `bio`, `preferred_cities`, `is_verified`, `avg_rating`, `bank_account_number`, `bank_code`                               |One row per professional; `is_verified` flips to `true` only by admin action|
-|`facility_profiles`    |`user_id`, `facility_name`, `facility_type`, `cac_number`, `address`, `city`, `state`, `contact_name`, `is_verified`, `avg_rating`                                                                      |One row per facility                                                        |
+|`professional_profiles`|`user_id`, `full_name`, `specialty`, `council_reg_number`, `years_experience`, `bio`, `preferred_cities`, `phone`, `available_for_locum`, `availability` (jsonb), `avatar_path`, `is_verified`, `avg_rating`, `bank_account_number`, `bank_code`|One row per professional; `is_verified` flips to `true` only by admin action|
+|`facility_profiles`    |`user_id`, `facility_name`, `facility_type`, `cac_number`, `address`, `city`, `state`, `contact_name`, `contact_phone`, `description`, `is_verified`, `avg_rating`                                      |One row per facility                                                        |
 |`credentials`          |`id`, `professional_id`, `doc_type` (`mdcn_license` | `nysc_cert` | `government_id`), `storage_path`, `status` (`pending` | `approved` | `rejected`), `reviewed_by`, `reviewed_at`, `expires_at`        |`storage_path` points to Supabase Storage; never stores the file itself     |
 |`shifts`               |`id`, `facility_id`, `role_required`, `start_time`, `end_time`, `pay_rate_naira`, `requirements`, `city`, `status` (`open` | `filled` | `in_progress` | `completed` | `cancelled`), `paystack_reference`|`paystack_reference` links to the escrow payment                            |
 |`bids`                 |`id`, `shift_id`, `professional_id`, `status` (`pending` | `accepted` | `rejected` | `cancelled`), `submitted_at`                                                                                       |At most one bid per professional per shift                                  |
 |`shift_confirmations`  |`shift_id`, `professional_confirmed_at`, `facility_confirmed_at`                                                                                                                                        |Payment release is triggered when both timestamps are populated             |
 |`transactions`         |`id`, `shift_id`, `gross_amount_naira`, `commission_naira`, `net_amount_naira`, `paystack_transfer_code`, `status` (`escrow` | `released` | `failed`), `released_at`                                    |Immutable audit log; rows are never updated, only inserted                  |
 |`ratings`              |`id`, `shift_id`, `rater_user_id`, `ratee_user_id`, `score` (1–5), `comment`, `created_at`                                                                                                              |Two rows per completed shift (one per direction)                            |
-|`notifications`        |`id`, `user_id`, `type`, `body`, `is_read`, `created_at`                                                                                                                                                |In-app notification feed                                                    |
+|`notifications`        |`id`, `user_id`, `type`, `title`, `body`, `link`, `is_read`, `created_at`                                                                                                                               |In-app notification feed (inserted by SQL triggers)                         |
+|`email_log`            |`id`, `email`, `subject`, `message`, `status` (`sent` | `failed`), `resend_message_id`, `error_message`                                                                                                  |Audit of every Resend attempt; written only by `send-email` (service_role)  |
+|`sms_log`              |`id`, `phone`, `message`, `status`, `termii_message_id`, `error_message`                                                                                                                                |Parked with the SMS pipeline; written only by `send-sms`                    |
+|`waitlist`             |`id`, `email`, `full_name`, `role`, `created_at`                                                                                                                                                        |Pre-launch signups (public landing form, rate-limited)                      |
+|`facility_referrals`   |`id`, referrer/referee contact fields, `status`                                                                                                                                                         |"Refer a facility" leads; admin-reviewed                                    |
+|`rate_limit_events`    |`id`, `bucket`, `created_at`                                                                                                                                                                            |Sliding-window rate limiting for public endpoints                           |
 
 ### Supabase Storage — File Storage
 
-Only credential documents. All buckets are **private** — no public URLs.
+Two buckets with deliberately different exposure: credential documents are **private** (signed URLs only, INV-06); profile photos are **public** (their whole purpose is to be shown to other users — serving via the public render endpoint avoids minting signed URLs on every card).
 
 |Bucket       |Path pattern                              |Access                                                                       |
 |-------------|------------------------------------------|-----------------------------------------------------------------------------|
-|`credentials`|`/{professional_id}/{doc_type}/{filename}`|Professional can upload and read own files; admin can read all; facility can read `approved` documents of professionals with a live (pending/accepted) bid on its shifts|
+|`credentials`|`/{professional_id}/{doc_type}/{filename}`|PRIVATE. Professional can upload and read own files; admin can read all; facility can read `approved` documents of professionals with a live (pending/accepted) bid on its shifts|
+|`avatars`    |`/{user_id}/avatar-{timestamp}.{ext}`     |PUBLIC read (5 MB limit, jpg/png/webp). Owners insert/update/delete/select their own folder only; no listing by others|
 
-Files are never served directly to the frontend. A signed URL with a 15-minute expiry is generated on demand when an admin opens a document for review, or when a facility views an approved credential of a professional bidding on its shift.
+Credential files are never served directly to the frontend. A signed URL with a 15-minute expiry is generated on demand when an admin opens a document for review, or when a facility views an approved credential of a professional bidding on its shift.
 
 ### Client-Side (Zustand) — Ephemeral State
 
@@ -177,12 +186,15 @@ There is no AI in the MVP. All background logic is handled by Supabase Edge Func
 
 |Function             |Trigger                                          |What it does                                                                                                                                                                                                                               |
 |---------------------|-------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|`auto-cancel-bids`   |DB webhook on `bids.status` UPDATE to `accepted` |Sets all other `pending` bids on the same `shift_id` to `cancelled`; sends SMS to each declined professional via `send-sms`                                                                                                                |
-|`send-shift-reminder`|Cron: runs every 15 minutes                      |Queries for shifts with `start_time` between now+105min and now+120min with `status = filled`; sends SMS reminder to both the professional and the facility contact                                                                        |
-|`release-payment`    |DB webhook on `shift_confirmations` INSERT/UPDATE|When both `professional_confirmed_at` and `facility_confirmed_at` are non-null, calls Paystack Transfer API to disburse net amount to professional’s bank; inserts a `transactions` row with `status = released`; sends SMS to professional|
-|`send-sms`           |Called internally by other Edge Functions        |Wraps Termii API; accepts `{ phone, message }` and handles retries; logs failures to a `sms_log` table                                                                                                                                     |
+|`verify-payment`     |Invoked by the facility client after the Paystack popup|Verifies the charge server-side with Paystack, confirms amount = gross pay rate, then creates the shift (`paystack_reference` binds the two). Honours `simulate: true` ONLY while the `PAYMENTS_SIMULATE` Edge secret is set (dev/testing)|
+|`release-payment`    |Invoked by the confirming client                 |Fully authoritative server-side: re-checks both confirmations + `completed` status, pays at most once per shift (unique escrow row is the lock), creates the Paystack transfer (or simulated release under `PAYMENTS_SIMULATE`), marks the transaction `released`/`failed`. Retry-safe: a later call re-attempts a `failed` payout|
+|`paystack-proxy`     |Invoked by the professional client               |Bank list + account-name resolution for bank linking (keeps the Paystack secret server-side)                                                                                                                                              |
+|`cancel-shift`       |Invoked by the facility client                   |Cancels an `open`/`filled` shift and refunds via Paystack                                                                                                                                                                                 |
+|`send-shift-reminder`|pg_cron `shift-reminders`, every 15 min (ACTIVE since 2026-07-12)|Finds `filled` shifts starting now+105..120 min; EMAILS both parties via `send-email` (professional also gets an in-app notification)                                                                                     |
+|`send-email`         |Server-to-server only (pg_net from DB triggers via `private.dispatch_email`, and `send-shift-reminder`)|Wraps Resend; `{ email, subject, message }`; logs every attempt to `email_log`. Caller must present the service-role JWT — never callable by a user token                                     |
+|`send-sms`           |PARKED (deployed; nothing calls it)              |Wraps Termii; kept for a future SMS re-enable (re-add `dispatch_sms` calls in the notify triggers + Termii secrets)                                                                                                                        |
 
-**No Edge Function is callable directly from the frontend.** They are invoked only by database webhooks or the Supabase cron scheduler. The Paystack secret key and Termii API key exist only in Edge Function environment variables.
+**Event notifications are NOT Edge Functions:** SQL `AFTER` triggers on the real tables insert the in-app `notifications` row and dispatch the email via pg_net (see migrations 028/035/040). Bid auto-cancellation lives in the `accept_bid` SQL RPC, not a webhook function. Client-invoked functions above authorize internally (JWT + ownership checks); `send-email`/`send-sms` reject any non-service-role caller. The Paystack and Resend secret keys exist only in Edge Function environment variables.
 
 -----
 

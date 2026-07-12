@@ -2,8 +2,9 @@ import { BarChart3, CheckCircle2, ShieldCheck, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
+import StatTile from '@/components/ui/StatTile';
 import { useFacilityTransactions } from '@/hooks/usePayments';
-import { formatNaira } from '@/utils/money';
+import { formatNaira, formatNairaCompact } from '@/utils/money';
 import { formatDate } from '@/utils/dateTime';
 import { cn } from '@/lib/utils';
 
@@ -22,21 +23,6 @@ function single(embedded) {
   return Array.isArray(embedded) ? embedded[0] : embedded;
 }
 
-function StatTile({ icon: Icon, value, label, accent = false }) {
-  return (
-    <Card>
-      <CardContent className="flex flex-col items-center gap-1 px-1 py-1 text-center">
-        <span className={cn('flex size-9 items-center justify-center rounded-full', accent ? 'bg-brand-accent/15 text-brand-accent' : 'bg-primary/15 text-primary')}>
-          <Icon className="size-4" aria-hidden="true" />
-        </span>
-        <span className={cn('text-base font-bold', accent ? 'text-brand-accent' : 'text-foreground')}>
-          {value}
-        </span>
-        <span className="text-[11px] text-muted-foreground">{label}</span>
-      </CardContent>
-    </Card>
-  );
-}
 
 function Transactions() {
   const { transactions, summary, loading, error } = useFacilityTransactions();
@@ -45,11 +31,13 @@ function Transactions() {
     <PageContainer>
       <PageHeader title="Payments" subtitle="Payments for your posted jobs." />
 
-      <div className="grid grid-cols-3 gap-2">
-        <StatTile icon={Wallet} value={formatNaira(summary.totalSpentKobo)} label="Total spent" accent />
-        <StatTile icon={CheckCircle2} value={summary.completedCount} label="Completed" />
-        <StatTile icon={BarChart3} value={formatNaira(summary.avgKobo)} label="Avg / job" />
-      </div>
+      <Card>
+        <CardContent className="grid grid-cols-3 divide-x divide-border">
+          <StatTile icon={Wallet} value={formatNairaCompact(summary.totalSpentKobo)} label="Total spent" accent />
+          <StatTile icon={CheckCircle2} value={summary.completedCount} label="Completed" />
+          <StatTile icon={BarChart3} value={formatNairaCompact(summary.avgKobo)} label="Avg / job" />
+        </CardContent>
+      </Card>
 
       {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
       {error && <p className="text-sm text-destructive">Could not load your payments.</p>}

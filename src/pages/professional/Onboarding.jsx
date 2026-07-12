@@ -312,6 +312,7 @@ function Onboarding() {
               <Input
                 name="yearsExperience"
                 type="number"
+                inputMode="numeric"
                 min="0"
                 step="1"
                 value={form.yearsExperience}

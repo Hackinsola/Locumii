@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import InitialsAvatar from '@/components/ui/InitialsAvatar';
+import StatTile from '@/components/ui/StatTile';
 import ActionSheet from '@/components/ui/ActionSheet';
 import VerifiedBadge from '@/components/profile/VerifiedBadge';
 import AvailabilityCalendar from '@/components/profile/AvailabilityCalendar';
@@ -35,7 +36,7 @@ import { useOwnCredentials } from '@/hooks/useCredentials';
 import { useProfessionalEarnings } from '@/hooks/usePayments';
 import { useProfessionalBids } from '@/hooks/useBids';
 import { useAuth } from '@/hooks/useAuth';
-import { formatNaira } from '@/utils/money';
+import { formatNairaCompact } from '@/utils/money';
 import { dateKey } from '@/utils/availability';
 import { SUPPORT_EMAIL_HREF, SUPPORT_PHONE_HREF, SUPPORT_WHATSAPP_URL } from '@/constants/support';
 import PageContainer from '@/components/layout/PageContainer';
@@ -49,28 +50,6 @@ function DetailRow({ label, value }) {
     <div className="flex items-start justify-between gap-3 py-2.5">
       <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
       <span className="text-right text-sm font-medium text-foreground">{value}</span>
-    </div>
-  );
-}
-
-// One of the three header stats (Shifts / Earned / Rating). `accent` paints the
-// value brand amber — reserved for money received, per ui-context.md.
-function StatTile({ icon: Icon, value, label, accent = false }) {
-  return (
-    <div className="flex flex-col items-center gap-1 px-2 py-1 text-center">
-      <span
-        className={
-          accent
-            ? 'flex size-9 items-center justify-center rounded-full bg-brand-accent/15 text-brand-accent'
-            : 'flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary'
-        }
-      >
-        <Icon className="size-4" aria-hidden="true" />
-      </span>
-      <span className={accent ? 'text-lg font-bold text-brand-accent' : 'text-lg font-bold text-foreground'}>
-        {value}
-      </span>
-      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }
@@ -282,10 +261,10 @@ function MyProfile() {
               />
               {photoError && <p className="text-xs text-destructive">{photoError}</p>}
               <div className="flex flex-col items-center gap-1">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">
+                <h1 className="max-w-full truncate text-xl font-bold tracking-tight text-foreground">
                   {profile.full_name}
                 </h1>
-                <p className="text-sm text-muted-foreground">{email}</p>
+                <p className="max-w-full truncate text-sm text-muted-foreground">{email}</p>
               </div>
               <VerifiedBadge
                 verified={profile.is_verified}
@@ -300,7 +279,7 @@ function MyProfile() {
               <StatTile icon={Briefcase} value={earnings.completedCount} label="Shifts" />
               <StatTile
                 icon={Wallet}
-                value={formatNaira(earnings.totalEarnedKobo)}
+                value={formatNairaCompact(earnings.totalEarnedKobo)}
                 label="Earned"
                 accent
               />
@@ -478,6 +457,7 @@ function MyProfile() {
                   id="yearsExperience"
                   name="yearsExperience"
                   type="number"
+                  inputMode="numeric"
                   min="0"
                   step="1"
                   value={form.yearsExperience}

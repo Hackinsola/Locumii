@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import InitialsAvatar from '@/components/ui/InitialsAvatar';
+import StatTile from '@/components/ui/StatTile';
 import ActionSheet from '@/components/ui/ActionSheet';
 import VerifiedBadge from '@/components/profile/VerifiedBadge';
 import { FACILITY_TYPES, FCT_CITIES } from '@/constants/options';
@@ -41,18 +42,6 @@ function DetailRow({ label, value }) {
     <div className="flex items-start justify-between gap-3 py-2.5">
       <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
       <span className="text-right text-sm font-medium text-foreground">{value}</span>
-    </div>
-  );
-}
-
-function StatTile({ icon: Icon, value, label }) {
-  return (
-    <div className="flex flex-col items-center gap-1 px-2 py-1 text-center">
-      <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
-        <Icon className="size-4" aria-hidden="true" />
-      </span>
-      <span className="text-lg font-bold text-foreground">{value}</span>
-      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }

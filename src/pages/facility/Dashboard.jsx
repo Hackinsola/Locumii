@@ -11,26 +11,10 @@ import RatingPromptBanner from '@/components/ratings/RatingPromptBanner';
 import FacilityShiftCard from '@/components/shifts/FacilityShiftCard';
 import Reveal from '@/components/layout/Reveal';
 import PageContainer from '@/components/layout/PageContainer';
+import StatTile from '@/components/ui/StatTile';
 import { useFacilityDashboard } from '@/hooks/useDashboard';
 import { usePendingRatings } from '@/hooks/useRatings';
-import { formatNaira } from '@/utils/money';
-import { cn } from '@/lib/utils';
-
-function StatTile({ icon: Icon, value, label, accent = false }) {
-  return (
-    <Card>
-      <CardContent className="flex flex-col items-center gap-1 px-1 py-1 text-center">
-        <span className={cn('flex size-9 items-center justify-center rounded-full', accent ? 'bg-brand-accent/15 text-brand-accent' : 'bg-primary/15 text-primary')}>
-          <Icon className="size-4" aria-hidden="true" />
-        </span>
-        <span className={cn('text-lg font-bold', accent ? 'text-brand-accent' : 'text-foreground')}>
-          {value}
-        </span>
-        <span className="text-[11px] text-muted-foreground">{label}</span>
-      </CardContent>
-    </Card>
-  );
-}
+import { formatNairaCompact } from '@/utils/money';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -77,12 +61,14 @@ function Dashboard() {
       )}
 
       {/* Stat tiles */}
-      <div className="grid grid-cols-4 gap-2">
-        <StatTile icon={Briefcase} value={stats.openShifts} label="Open jobs" />
-        <StatTile icon={Users} value={shiftsNeedingAction.length} label="Pending" />
-        <StatTile icon={Clock} value={stats.filledShifts} label="Filled" />
-        <StatTile icon={Wallet} value={formatNaira(stats.totalSpentKobo)} label="Spent" accent />
-      </div>
+      <Card>
+        <CardContent className="grid grid-cols-4 divide-x divide-border">
+          <StatTile icon={Briefcase} value={stats.openShifts} label="Open jobs" />
+          <StatTile icon={Users} value={shiftsNeedingAction.length} label="Pending" />
+          <StatTile icon={Clock} value={stats.filledShifts} label="Filled" />
+          <StatTile icon={Wallet} value={formatNairaCompact(stats.totalSpentKobo)} label="Spent" accent />
+        </CardContent>
+      </Card>
 
       {/* Needs your attention */}
       {shiftsNeedingAction.length > 0 && (

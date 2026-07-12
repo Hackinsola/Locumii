@@ -25,6 +25,22 @@ export function formatNaira(kobo) {
   }).format(koboToNaira(kobo));
 }
 
+// Integer kobo -> short display for tight stat tiles, e.g. "₦450", "₦90k",
+// "₦1.25M". Guarantees money fits a 3-4 column stats row on a narrow phone;
+// full precision stays everywhere else (formatNaira).
+export function formatNairaCompact(kobo) {
+  const naira = koboToNaira(kobo);
+  const abs = Math.abs(naira);
+  const trim = (text) => text.replace(/\.0+$|(\.\d*?)0+$/, '$1');
+  if (abs >= 1_000_000) {
+    return `₦${trim((naira / 1_000_000).toFixed(2))}M`;
+  }
+  if (abs >= 1_000) {
+    return `₦${trim((naira / 1_000).toFixed(1))}k`;
+  }
+  return `₦${Math.round(naira)}`;
+}
+
 // Platform commission on a gross amount, in kobo: round(gross * COMMISSION_RATE).
 // Mirrors the (not-yet-built) server-side release-payment calculation.
 export function calculateCommission(grossKobo) {

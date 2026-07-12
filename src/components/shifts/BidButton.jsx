@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 const BID_STATUS_LABELS = {
@@ -25,7 +26,14 @@ function BidButton({ isVerified, shiftOpen, existingBidStatus, submitting, onSub
       <div className="flex flex-col gap-1">
         <Button disabled>Submit bid</Button>
         <p className="text-sm text-muted-foreground">
-          Your account must be verified before you can bid.
+          Your account must be verified before you can bid —{' '}
+          <Link
+            to="/professional/documents"
+            className="font-medium text-primary underline-offset-2 hover:underline"
+          >
+            check your documents
+          </Link>
+          .
         </p>
       </div>
     );

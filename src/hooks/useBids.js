@@ -52,7 +52,7 @@ export function useProfessionalBids() {
       const { data, error: fetchError } = await supabase
         .from('bids')
         .select(
-          'id, status, submitted_at, shift_id, shifts ( id, role_required, start_time, end_time, pay_rate_naira, city, status, facility_profiles ( facility_name ) )'
+          'id, status, submitted_at, shift_id, shifts ( id, role_required, start_time, end_time, pay_rate_naira, city, status, facility_profiles ( facility_name, address ) )'
         )
         .eq('professional_id', professionalId)
         .order('submitted_at', { ascending: false })

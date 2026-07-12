@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 
 const SHIFT_SELECT =
-  'id, facility_id, role_required, start_time, end_time, pay_rate_naira, requirements, city, status, facility_profiles ( facility_name, avg_rating )';
+  'id, facility_id, role_required, start_time, end_time, pay_rate_naira, requirements, city, status, facility_profiles ( facility_name, address, avg_rating )';
 const PAGE_SIZE = 20;
 
 // Shift creation now goes through the verify-payment Edge Function (see

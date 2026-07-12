@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 // can stack flush above it with `bottom-16` — keep the two in sync.
 function BottomNav({ links }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex h-16 border-t border-border bg-background/95 backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex h-16 border-t border-border bg-background md:hidden">
       {links.map((link) => {
         const Icon = link.icon;
         return (

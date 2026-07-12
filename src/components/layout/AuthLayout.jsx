@@ -57,7 +57,7 @@ function AuthLayout({ title, description, children, footer }) {
 
       {/* Form panel. */}
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
-        <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div className="mb-8 flex justify-center lg:hidden">
             <Link to="/" aria-label="Locumii home">
               <Logo />

@@ -8,7 +8,7 @@ function PageContainer({ gap = 'gap-4', className, children }) {
     <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
       <div
         className={cn(
-          'mx-auto flex w-full max-w-4xl flex-col duration-500 animate-in fade-in',
+          'mx-auto flex w-full max-w-4xl flex-col duration-200 animate-in fade-in',
           gap,
           className
         )}

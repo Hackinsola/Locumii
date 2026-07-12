@@ -32,7 +32,9 @@ function Reveal({ children, className, delay = 0, as: Tag = 'div', ...rest }) {
       {...rest}
       style={{ transitionDelay: shown ? `${delay}ms` : '0ms' }}
       className={cn(
-        'transition-all duration-700 ease-out motion-reduce:transition-none',
+        // Only opacity/transform transition (compositor-cheap), kept short so
+        // content never feels late on slower phones.
+        'transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none',
         shown ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
         className
       )}

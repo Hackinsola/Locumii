@@ -34,7 +34,7 @@ function Dashboard() {
       <div className="relative">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-8 -left-6 size-40 rounded-full bg-primary/15 blur-3xl"
+          className="pointer-events-none absolute -top-8 -left-6 size-40 rounded-full bg-radial from-primary/15 to-transparent"
         />
         <div className="relative flex items-center gap-3">
           <InitialsAvatar name={profile?.facility_name} size="lg" />

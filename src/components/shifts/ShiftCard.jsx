@@ -30,7 +30,9 @@ function ShiftCard({ shift, urgent = false, badge = false, footer }) {
   return (
     <Card
       className={cn(
-        'gap-0 py-0 transition duration-200 hover:-translate-y-0.5 hover:shadow-md',
+        // Hover lift is desktop-only: on touch screens the tap-triggered hover
+        // state made cards jump under the finger.
+        'gap-0 py-0 transition duration-200 md:hover:-translate-y-0.5 md:hover:shadow-md',
         urgent && 'ring-2 ring-destructive/60'
       )}
     >

@@ -116,7 +116,7 @@ function Onboarding() {
       <div className="relative overflow-hidden">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-20 left-1/2 size-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl"
+          className="pointer-events-none absolute -top-20 left-1/2 size-72 -translate-x-1/2 rounded-full bg-radial from-primary/20 to-transparent"
         />
         <div className="relative flex flex-col items-center gap-3 px-4 pt-10 pb-2 text-center">
           <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
@@ -275,7 +275,7 @@ function Onboarding() {
       </PageContainer>
 
       {/* Sticky CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 px-4 py-3 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background px-4 py-3">
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <p className="hidden flex-1 text-sm text-muted-foreground sm:block">
             Please fill in all required fields.

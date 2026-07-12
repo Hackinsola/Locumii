@@ -343,7 +343,7 @@ function PostShift() {
       {/* Sticky publish bar. On mobile it sits flush above the h-16 bottom tab bar
           (which is fixed at bottom-0 with a higher z-index and was covering the
           button); at md+ the tab bar is hidden so the publish bar drops to the edge. */}
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-background/90 px-4 py-3 backdrop-blur md:bottom-0">
+      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-background px-4 py-3 md:bottom-0">
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <div className="hidden flex-1 sm:block">
             <p className="text-xs text-muted-foreground">You pay upfront via Paystack</p>
